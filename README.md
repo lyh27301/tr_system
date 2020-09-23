@@ -1,0 +1,2 @@
+## travel_reservation_system
+In this project we developed a component-based distributed information system using some of the fundamental components and algorithms for distribution, coordination, scalability, fault-tolerance, etc. The ultimate goal is a cohesive multi-client, multi-server implementation of a Travel Reservation system.
