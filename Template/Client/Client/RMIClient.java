@@ -13,7 +13,7 @@ import java.io.*;
 public class RMIClient extends Client
 {
 	private static String s_serverHost = "localhost";
-	private static int s_serverPort = 1099;
+	private static int s_serverPort = 1016;
 	private static String s_serverName = "Server";
 
 	//TODO: ADD YOUR GROUP NUMBER TO COMPILE
@@ -70,6 +70,7 @@ public class RMIClient extends Client
 			boolean first = true;
 			while (true) {
 				try {
+					// Retrieve remote object reference + proxy by calling registry.
 					Registry registry = LocateRegistry.getRegistry(server, port);
 					m_resourceManager = (IResourceManager)registry.lookup(s_rmiPrefix + name);
 					System.out.println("Connected to '" + name + "' server [" + server + ":" + port + "/" + s_rmiPrefix + name + "]");
