@@ -110,42 +110,29 @@ public class MiddlewareResourceManager extends ResourceManager implements IMiddl
         return roomResourceManager.reserveRoom(id, customerID, location);
     }
 
-
-
-
-
-
-
-    //unimplemented methods
-
-
-
-
     @Override
     public int newCustomer(int id) throws RemoteException {
-        return 0;
+        return customerResourceManager.newCustomer(id);
     }
 
     @Override
     public boolean newCustomer(int id, int cid) throws RemoteException {
-        return false;
+        return customerResourceManager.newCustomer(id, cid);
     }
-
-
-
 
     @Override
     public boolean deleteCustomer(int id, int customerID) throws RemoteException {
-        return false;
+        return customerResourceManager.deleteCustomer(id,customerID);
     }
-
-
-
 
     @Override
     public String queryCustomerInfo(int id, int customerID) throws RemoteException {
-        return null;
+        return customerResourceManager.queryCustomerInfo(id, customerID);
     }
+
+
+
+    //unimplemented methods
 
 
 
