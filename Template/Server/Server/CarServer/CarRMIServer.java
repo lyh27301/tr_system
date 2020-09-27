@@ -22,7 +22,6 @@ public class CarRMIServer extends CarResourceManager
 
     public static void main(String args[])
     {
-        System.setProperty("java.security.policy", "/Users/doreenhe/Documents/MySrc/travel_reservation_system/Template/Server/Server/MiddlewareServer/security.policy");
         if (System.getSecurityManager() == null) {
             System.setSecurityManager(new SecurityManager());
         }

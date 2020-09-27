@@ -13,6 +13,7 @@ public class MiddlewareResourceManager extends ResourceManager implements IMiddl
 
     private IResourceManager carResourceManager = null;
     private IResourceManager flightResourceManager = null;
+    private IResourceManager roomResourceManager = null;
 
     public MiddlewareResourceManager()
     {
@@ -25,6 +26,10 @@ public class MiddlewareResourceManager extends ResourceManager implements IMiddl
 
     public void setFlightResourceManager(IResourceManager flightResourceManager) {
         this.flightResourceManager = flightResourceManager;
+    }
+
+    public void setRoomResourceManager(IResourceManager roomResourceManager) {
+        this.roomResourceManager = roomResourceManager;
     }
 
 

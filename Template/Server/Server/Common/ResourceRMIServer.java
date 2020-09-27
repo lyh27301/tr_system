@@ -6,18 +6,23 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 public class ResourceRMIServer {
-    private static String s_serverName = "FlightServer";
+
     private static String s_rmiPrefix = "group_16_";
-    private static int registryPort = 3016;
+    private static String s_serverName;
+    private static int registryPort;
     private static Registry registry;
 
-    public ResourceRMIServer(String servername, int port) {
+    public ResourceRMIServer() {
         super();
-        s_serverName = servername;
+    }
+
+    protected static void setUpHost (String serverName, int port){
+        s_serverName = serverName;
         registryPort = port;
     }
 
     protected static void securitySetUp(){
+        System.setProperty("java.security.policy", "/Users/doreenhe/Documents/MySrc/travel_reservation_system/Template/Server/Server/MiddlewareServer/security.policy");
         if (System.getSecurityManager() == null) {
             System.setSecurityManager(new SecurityManager());
         }

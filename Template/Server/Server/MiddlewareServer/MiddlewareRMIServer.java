@@ -11,7 +11,7 @@ import java.rmi.server.UnicastRemoteObject;
 
 public class MiddlewareRMIServer extends MiddlewareResourceManager{
 
-    enum ServerType {CAR,FLIGHT}
+    enum ServerType {CAR,FLIGHT, ROOM}
 
     private static String s_rmiPrefix = "group_16_";
     private static String s_serverName = "Middleware";
@@ -22,10 +22,15 @@ public class MiddlewareRMIServer extends MiddlewareResourceManager{
     private static int car_serverPort = 1016;
     private static String car_serverName = "CarServer";
 
-    //Car server config
+    //Flight server config
     private static String flight_serverHost = "localhost";
     private static int flight_serverPort = 3016;
     private static String flight_serverName = "FlightServer";
+
+    //Room server config
+    private static String room_serverHost = "localhost";
+    private static int room_serverPort = 4016;
+    private static String room_serverName = "RoomServer";
 
     //Servers
     private CarResourceManager carResourceManager = null;
@@ -48,8 +53,12 @@ public class MiddlewareRMIServer extends MiddlewareResourceManager{
             //connect to servers
             IResourceManager carResourceManager = middlewareServer.findServer(ServerType.CAR);
             middlewareResourceManager.setCarResourceManager(carResourceManager);
+
             IResourceManager flightResourceManager = middlewareServer.findServer(ServerType.FLIGHT);
             middlewareResourceManager.setFlightResourceManager(flightResourceManager);
+
+            IResourceManager roomResourceManager = middlewareServer.findServer(ServerType.ROOM);
+            middlewareResourceManager.setRoomResourceManager(roomResourceManager);
 
             //provide RMI to client
             IMiddlewareResourceManager middlewareResourceManagerProxy = (IMiddlewareResourceManager)UnicastRemoteObject
@@ -94,12 +103,14 @@ public class MiddlewareRMIServer extends MiddlewareResourceManager{
         IResourceManager resourceManager = null;
         switch(type) {
             case CAR:
-                resourceManager = (IResourceManager) connectServer(car_serverHost, car_serverPort, car_serverName);
+                resourceManager = connectServer(car_serverHost, car_serverPort, car_serverName);
                 break;
             case FLIGHT:
-                resourceManager = (IResourceManager) connectServer(flight_serverHost, flight_serverPort, flight_serverName);
+                resourceManager = connectServer(flight_serverHost, flight_serverPort, flight_serverName);
                 break;
-
+            case ROOM:
+                resourceManager = connectServer(room_serverHost, room_serverPort, room_serverName);
+                break;
         }
         return resourceManager;
     }

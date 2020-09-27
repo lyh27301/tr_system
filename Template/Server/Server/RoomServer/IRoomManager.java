@@ -1,9 +1,10 @@
-package Server.Interface;
+package Server.RoomServer;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 public interface IRoomManager extends Remote {
+
     /**
      * Add room at a location.
      *

@@ -7,10 +7,11 @@ public class FlightRMIServer extends ResourceRMIServer {
 
 
     public FlightRMIServer() {
-        super("FlightServer", 3016);
+        super();
     }
 
     public static void main(String args[]) {
+        setUpHost("FlightServer", 3016);
         securitySetUp();
 
         try {
