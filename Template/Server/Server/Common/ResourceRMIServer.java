@@ -11,7 +11,6 @@ public class ResourceRMIServer {
     private static String s_serverName;
     private static int registryPort;
     private static Registry registry;
-
     public ResourceRMIServer() {
         super();
     }

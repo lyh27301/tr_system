@@ -1,9 +1,6 @@
 package Server.RoomServer;
 
 import Server.Common.ResourceRMIServer;
-import Server.FlightServer.FlightResourceManager;
-import Server.FlightServer.IFlightManager;
-
 import java.rmi.server.UnicastRemoteObject;
 
 public class RoomRMIServer extends ResourceRMIServer {
