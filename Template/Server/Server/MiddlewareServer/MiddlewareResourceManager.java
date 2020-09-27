@@ -1,6 +1,7 @@
 package Server.MiddlewareServer;
 
 import Server.Common.ResourceManager;
+import Server.Common.Trace;
 import Server.Interface.IResourceManager;
 
 import java.rmi.RemoteException;
@@ -130,19 +131,24 @@ public class MiddlewareResourceManager extends ResourceManager implements IMiddl
         return customerResourceManager.queryCustomerInfo(id, customerID);
     }
 
-
-
-    //unimplemented methods
-
-
-
     @Override
     public boolean bundle(int id, int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room) throws RemoteException {
-        return false;
+        flightNumbers.stream().forEach(fn -> {
+            try {
+                flightResourceManager.reserveFlight(id, customerID, (Integer.valueOf(fn)).intValue());
+                Trace.info("Flight number " + fn + " is booked with customer ID " + customerID);
+            } catch (RemoteException e) {
+                Trace.error("Fail to book flight number "+fn+" with customer ID "+ customerID);
+            }
+        });
+        if (car) carResourceManager.reserveCar(id,customerID, location);
+        if (room) roomResourceManager.reserveRoom(id,customerID, location);
+        return true;
     }
 
     @Override
-    public String getName() throws RemoteException {
-        return null;
+    public String getName() throws RemoteException
+    {
+        return m_name;
     }
 }
