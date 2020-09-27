@@ -11,7 +11,7 @@ import java.rmi.server.UnicastRemoteObject;
 
 public class MiddlewareRMIServer extends MiddlewareResourceManager{
 
-    enum ServerType {CAR,FLIGHT, ROOM}
+    enum ServerType {CAR, FLIGHT, ROOM, CUSTOMER}
 
     private static String s_rmiPrefix = "group_16_";
     private static String s_serverName = "Middleware";
@@ -32,8 +32,11 @@ public class MiddlewareRMIServer extends MiddlewareResourceManager{
     private static int room_serverPort = 4016;
     private static String room_serverName = "RoomServer";
 
-    //Servers
-    private CarResourceManager carResourceManager = null;
+    //Customer server config
+    private static String customer_serverHost = "localhost";
+    private static int customer_serverPort = 5016;
+    private static String customer_serverName = "CustomerServer";
+
 
 
 
@@ -47,8 +50,8 @@ public class MiddlewareRMIServer extends MiddlewareResourceManager{
         if (System.getSecurityManager() == null) System.setSecurityManager(new SecurityManager());
 
         try {
-            MiddlewareRMIServer middlewareServer = new MiddlewareRMIServer();
-            MiddlewareResourceManager middlewareResourceManager = new MiddlewareResourceManager();
+            final MiddlewareRMIServer middlewareServer = new MiddlewareRMIServer();
+            final MiddlewareResourceManager middlewareResourceManager = new MiddlewareResourceManager();
 
             //connect to servers
             IResourceManager carResourceManager = middlewareServer.findServer(ServerType.CAR);
@@ -59,6 +62,9 @@ public class MiddlewareRMIServer extends MiddlewareResourceManager{
 
             IResourceManager roomResourceManager = middlewareServer.findServer(ServerType.ROOM);
             middlewareResourceManager.setRoomResourceManager(roomResourceManager);
+
+            IResourceManager customerResourceManager = middlewareServer.findServer(ServerType.CUSTOMER);
+            middlewareResourceManager.setCustomerResourceManager(customerResourceManager);
 
             //provide RMI to client
             IMiddlewareResourceManager middlewareResourceManagerProxy = (IMiddlewareResourceManager)UnicastRemoteObject
@@ -110,6 +116,9 @@ public class MiddlewareRMIServer extends MiddlewareResourceManager{
                 break;
             case ROOM:
                 resourceManager = connectServer(room_serverHost, room_serverPort, room_serverName);
+                break;
+            case CUSTOMER:
+                resourceManager = connectServer(customer_serverHost, customer_serverPort, customer_serverName);
                 break;
         }
         return resourceManager;

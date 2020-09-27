@@ -1,8 +1,5 @@
 package Server.MiddlewareServer;
 
-import Server.CarServer.CarResourceManager;
-import Server.Common.RMHashMap;
-import Server.Common.RMItem;
 import Server.Common.ResourceManager;
 import Server.Interface.IResourceManager;
 
@@ -14,6 +11,7 @@ public class MiddlewareResourceManager extends ResourceManager implements IMiddl
     private IResourceManager carResourceManager = null;
     private IResourceManager flightResourceManager = null;
     private IResourceManager roomResourceManager = null;
+    private IResourceManager customerResourceManager = null;
 
     public MiddlewareResourceManager()
     {
@@ -30,6 +28,10 @@ public class MiddlewareResourceManager extends ResourceManager implements IMiddl
 
     public void setRoomResourceManager(IResourceManager roomResourceManager) {
         this.roomResourceManager = roomResourceManager;
+    }
+
+    public void setCustomerResourceManager(IResourceManager customerResourceManager){
+        this.customerResourceManager = customerResourceManager;
     }
 
 
@@ -83,6 +85,32 @@ public class MiddlewareResourceManager extends ResourceManager implements IMiddl
         return flightResourceManager.reserveFlight(id, customerID, flightNumber);
     }
 
+    @Override
+    public boolean addRooms(int id, String location, int numRooms, int price) throws RemoteException {
+        return roomResourceManager.addRooms(id, location, numRooms, price);
+    }
+
+    @Override
+    public boolean deleteRooms(int id, String location) throws RemoteException {
+        return roomResourceManager.deleteRooms(id, location);
+    }
+
+    @Override
+    public int queryRooms(int id, String location) throws RemoteException {
+        return roomResourceManager.queryRooms(id, location);
+    }
+
+    @Override
+    public int queryRoomsPrice(int id, String location) throws RemoteException {
+        return roomResourceManager.queryRoomsPrice(id, location);
+    }
+
+    @Override
+    public boolean reserveRoom(int id, int customerID, String location) throws RemoteException {
+        return roomResourceManager.reserveRoom(id, customerID, location);
+    }
+
+
 
 
 
@@ -92,10 +120,6 @@ public class MiddlewareResourceManager extends ResourceManager implements IMiddl
 
 
 
-    @Override
-    public boolean addRooms(int id, String location, int numRooms, int price) throws RemoteException {
-        return false;
-    }
 
     @Override
     public int newCustomer(int id) throws RemoteException {
@@ -109,10 +133,6 @@ public class MiddlewareResourceManager extends ResourceManager implements IMiddl
 
 
 
-    @Override
-    public boolean deleteRooms(int id, String location) throws RemoteException {
-        return false;
-    }
 
     @Override
     public boolean deleteCustomer(int id, int customerID) throws RemoteException {
@@ -121,10 +141,6 @@ public class MiddlewareResourceManager extends ResourceManager implements IMiddl
 
 
 
-    @Override
-    public int queryRooms(int id, String location) throws RemoteException {
-        return 0;
-    }
 
     @Override
     public String queryCustomerInfo(int id, int customerID) throws RemoteException {
@@ -132,19 +148,6 @@ public class MiddlewareResourceManager extends ResourceManager implements IMiddl
     }
 
 
-
-
-    @Override
-    public int queryRoomsPrice(int id, String location) throws RemoteException {
-        return 0;
-    }
-
-
-
-    @Override
-    public boolean reserveRoom(int id, int customerID, String location) throws RemoteException {
-        return false;
-    }
 
     @Override
     public boolean bundle(int id, int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room) throws RemoteException {
