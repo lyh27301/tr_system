@@ -1,11 +1,12 @@
 package Server.CustomerServer;
 
 import Server.Common.*;
+import Server.Interface.ICustomerManager;
 
 import java.rmi.RemoteException;
 import java.util.Calendar;
 
-public class CustomerResourceManager extends ResourceManager implements ICustomerManager {
+public class CustomerResourceManager extends BasicResourceManager implements ICustomerManager {
 
     public CustomerResourceManager()
     {

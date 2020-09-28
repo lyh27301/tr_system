@@ -1,6 +1,8 @@
 package Server.CarServer;
 
 import Server.Common.ResourceRMIServer;
+import Server.Interface.ICarManager;
+
 import java.rmi.server.UnicastRemoteObject;
 
 public class CarRMIServer extends ResourceRMIServer

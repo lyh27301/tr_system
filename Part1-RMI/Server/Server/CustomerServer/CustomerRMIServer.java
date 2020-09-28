@@ -1,6 +1,7 @@
 package Server.CustomerServer;
 
 import Server.Common.ResourceRMIServer;
+import Server.Interface.ICustomerManager;
 
 import java.rmi.server.UnicastRemoteObject;
 

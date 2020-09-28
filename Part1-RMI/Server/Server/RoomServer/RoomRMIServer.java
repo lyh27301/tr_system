@@ -1,6 +1,8 @@
 package Server.RoomServer;
 
 import Server.Common.ResourceRMIServer;
+import Server.Interface.IRoomManager;
+
 import java.rmi.server.UnicastRemoteObject;
 
 public class RoomRMIServer extends ResourceRMIServer {

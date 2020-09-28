@@ -1,9 +1,13 @@
 package Server.MiddlewareServer;
 
-import Server.CarServer.CarResourceManager;
+import Server.Interface.ICarManager;
+import Server.Interface.ICustomerManager;
+import Server.Interface.IFlightManager;
 import Server.Interface.IResourceManager;
+import Server.Interface.IRoomManager;
 
 import java.rmi.NotBoundException;
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -54,20 +58,20 @@ public class MiddlewareRMIServer extends MiddlewareResourceManager{
             final MiddlewareResourceManager middlewareResourceManager = new MiddlewareResourceManager();
 
             //connect to servers
-            IResourceManager carResourceManager = middlewareServer.findServer(ServerType.CAR);
+            ICarManager carResourceManager = (ICarManager)middlewareServer.findServer(ServerType.CAR);
             middlewareResourceManager.setCarResourceManager(carResourceManager);
 
-            IResourceManager flightResourceManager = middlewareServer.findServer(ServerType.FLIGHT);
+            IFlightManager flightResourceManager = (IFlightManager)middlewareServer.findServer(ServerType.FLIGHT);
             middlewareResourceManager.setFlightResourceManager(flightResourceManager);
 
-            IResourceManager roomResourceManager = middlewareServer.findServer(ServerType.ROOM);
+            IRoomManager roomResourceManager = (IRoomManager)middlewareServer.findServer(ServerType.ROOM);
             middlewareResourceManager.setRoomResourceManager(roomResourceManager);
 
-            IResourceManager customerResourceManager = middlewareServer.findServer(ServerType.CUSTOMER);
+            ICustomerManager customerResourceManager = (ICustomerManager)middlewareServer.findServer(ServerType.CUSTOMER);
             middlewareResourceManager.setCustomerResourceManager(customerResourceManager);
 
             //provide RMI to client
-            IMiddlewareResourceManager middlewareResourceManagerProxy = (IMiddlewareResourceManager)UnicastRemoteObject
+            IResourceManager middlewareResourceManagerProxy = (IResourceManager) UnicastRemoteObject
                     .exportObject(middlewareResourceManager,0);
 
             Registry l_registry;
@@ -104,9 +108,9 @@ public class MiddlewareRMIServer extends MiddlewareResourceManager{
 
 
 
-    private IResourceManager findServer(ServerType type)
+    private Remote findServer(ServerType type)
     {
-        IResourceManager resourceManager = null;
+        Remote resourceManager = null;
         switch(type) {
             case CAR:
                 resourceManager = connectServer(car_serverHost, car_serverPort, car_serverName);
@@ -124,14 +128,14 @@ public class MiddlewareRMIServer extends MiddlewareResourceManager{
         return resourceManager;
     }
 
-    private IResourceManager connectServer(String server, int port, String name)
+    private Remote connectServer(String server, int port, String name)
     {
         try {
             boolean first = true;
             while (true) {
                 try {
                     Registry registry = LocateRegistry.getRegistry(server, port);
-                    IResourceManager resourceManager = (IResourceManager)registry.lookup(s_rmiPrefix + name);
+                    Remote resourceManager = registry.lookup(s_rmiPrefix + name);
                     System.out.println("Connected to '" + name + "' server [" + server + ":" + port + "/" + s_rmiPrefix + name + "]");
                     return resourceManager;
                 } catch (NotBoundException | RemoteException e) {

@@ -1,37 +1,41 @@
 package Server.MiddlewareServer;
 
-import Server.Common.ResourceManager;
+import Server.Interface.ICarManager;
+import Server.Common.RMHashMap;
 import Server.Common.Trace;
+import Server.Interface.ICustomerManager;
+import Server.Interface.IFlightManager;
 import Server.Interface.IResourceManager;
+import Server.Interface.IRoomManager;
 
 import java.rmi.RemoteException;
 import java.util.Vector;
 
-public class MiddlewareResourceManager extends ResourceManager implements IMiddlewareResourceManager {
+public class MiddlewareResourceManager implements IResourceManager {
 
-    private IResourceManager carResourceManager = null;
-    private IResourceManager flightResourceManager = null;
-    private IResourceManager roomResourceManager = null;
-    private IResourceManager customerResourceManager = null;
+    private ICarManager carResourceManager = null;
+    private IFlightManager flightResourceManager = null;
+    private IRoomManager roomResourceManager = null;
+    private ICustomerManager customerResourceManager = null;
 
-    public MiddlewareResourceManager()
-    {
-        super("MiddlewareResourceManager");
-    }
+    protected String m_name = "MiddlewareResourceManager";
+    protected RMHashMap m_data = new RMHashMap();
 
-    public void setCarResourceManager(IResourceManager carResourceManager) {
+    public MiddlewareResourceManager() { }
+
+    public void setCarResourceManager(ICarManager carResourceManager) {
         this.carResourceManager = carResourceManager;
     }
 
-    public void setFlightResourceManager(IResourceManager flightResourceManager) {
+    public void setFlightResourceManager(IFlightManager flightResourceManager) {
         this.flightResourceManager = flightResourceManager;
     }
 
-    public void setRoomResourceManager(IResourceManager roomResourceManager) {
+    public void setRoomResourceManager(IRoomManager roomResourceManager) {
         this.roomResourceManager = roomResourceManager;
     }
 
-    public void setCustomerResourceManager(IResourceManager customerResourceManager){
+    public void setCustomerResourceManager(ICustomerManager customerResourceManager){
         this.customerResourceManager = customerResourceManager;
     }
 

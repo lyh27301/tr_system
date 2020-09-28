@@ -1,12 +1,13 @@
 package Server.FlightServer;
 
 import Server.Common.Flight;
-import Server.Common.ResourceManager;
+import Server.Common.BasicResourceManager;
 import Server.Common.Trace;
+import Server.Interface.IFlightManager;
 
 import java.rmi.RemoteException;
 
-public class FlightResourceManager extends ResourceManager implements IFlightManager {
+public class FlightResourceManager extends BasicResourceManager implements IFlightManager {
 
     public FlightResourceManager()
     {

@@ -1,4 +1,4 @@
-package Server.CarServer;
+package Server.Interface;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;

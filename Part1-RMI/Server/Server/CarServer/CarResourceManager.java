@@ -6,10 +6,11 @@
 package Server.CarServer;
 
 import Server.Common.*;
+import Server.Interface.ICarManager;
 
 import java.rmi.RemoteException;
 
-public class CarResourceManager extends ResourceManager implements ICarManager
+public class CarResourceManager extends BasicResourceManager implements ICarManager
 
 {
 

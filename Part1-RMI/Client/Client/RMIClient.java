@@ -14,7 +14,7 @@ public class RMIClient extends Client
 {
 	private static String s_serverHost = "localhost";
 	private static int s_serverPort = 2016;
-	private static String s_serverName = "Server";
+	private static String s_serverName = "Middleware";
 
 	//TODO: ADD YOUR GROUP NUMBER TO COMPILE
 	private static String s_rmiPrefix = "group_16_";
@@ -34,6 +34,7 @@ public class RMIClient extends Client
 			System.err.println((char)27 + "[31;1mClient exception: " + (char)27 + "[0mUsage: java client.RMIClient [server_hostname [server_rmiobject]]");
 			System.exit(1);
 		}
+		System.setProperty("java.security.policy", "/Users/doreenhe/Documents/MySrc/travel_reservation_system/Template/Server/Server/MiddlewareServer/security.policy");
 
 		// Set the security policy
 		if (System.getSecurityManager() == null)

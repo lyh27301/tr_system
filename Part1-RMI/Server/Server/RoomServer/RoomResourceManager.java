@@ -1,12 +1,13 @@
 package Server.RoomServer;
 
-import Server.Common.ResourceManager;
+import Server.Common.BasicResourceManager;
 import Server.Common.Room;
 import Server.Common.Trace;
+import Server.Interface.IRoomManager;
 
 import java.rmi.RemoteException;
 
-public class RoomResourceManager extends ResourceManager implements IRoomManager {
+public class RoomResourceManager extends BasicResourceManager implements IRoomManager {
 
     public RoomResourceManager(){
         super ("RoomResourceManager");
