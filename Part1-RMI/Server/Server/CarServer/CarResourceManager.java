@@ -6,11 +6,8 @@
 package Server.CarServer;
 
 import Server.Common.*;
-import Server.Interface.ICarManager;
 
-import java.rmi.RemoteException;
-
-public class CarResourceManager extends BasicResourceManager implements ICarManager
+public class CarResourceManager extends ResourceManager
 
 {
 
@@ -21,7 +18,7 @@ public class CarResourceManager extends BasicResourceManager implements ICarMana
 
 	// Create a new car location or add cars to an existing location
 	// NOTE: if price <= 0 and the location already exists, it maintains its current price
-	public boolean addCars(int xid, String location, int count, int price) throws RemoteException
+	public boolean addCars(int xid, String location, int count, int price)
 	{
 		Trace.info("RM::addCars(" + xid + ", " + location + ", " + count + ", $" + price + ") called");
 		Car curObj = (Car)readData(xid, Car.getKey(location));
