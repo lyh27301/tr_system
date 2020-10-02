@@ -1,5 +1,5 @@
 package Server.MiddlewareServer;
-package Server.Common.*
+import Server.Common.*;
 
 public class MiddlewareRescourceManager extends ResourceManager{
     protected ResourceManagerTCPClient flightTCPClient = null;
