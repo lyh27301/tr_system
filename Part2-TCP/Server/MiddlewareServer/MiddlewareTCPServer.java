@@ -5,7 +5,7 @@ import java.net.ServerSocket;
 import java.net.*;
 import java.util.Vector;
 
-public class MiddlewareTCPServer extends MiddlewareResourceManager{
+public class MiddlewareTCPServer extends MiddlewareResourceManager {
 
     private static MiddlewareTCPServer middleware = null;
 
@@ -23,8 +23,6 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager{
 
     private static String customerHost = "localhost";
     private static int customerPort = 6516;
-
-
 
     public static void main(String[] args) {
         try {
@@ -48,7 +46,8 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager{
                 customerPort = Integer.parseInt(customerInfo[1]);
             }
 
-            middleware = new MiddlewareTCPServer("Middleware",flightHost, flightPort, carHost, carPort, roomHost, roomPort, customerHost, customerPort);
+            middleware = new MiddlewareTCPServer("Middleware", flightHost, flightPort, carHost, carPort, roomHost,
+                    roomPort, customerHost, customerPort);
 
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 public void run() {
@@ -57,15 +56,15 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager{
             });
             System.out.println("Starting 'Middleware:" + s_serverPort + "'");
             middleware.start(s_serverPort);
-        } catch(Exception e) {
-            System.err.println((char)27 + "[31;1mMiddleware exception: " + (char)27 + e.toString());
+        } catch (Exception e) {
+            System.err.println((char) 27 + "[31;1mMiddleware exception: " + (char) 27 + e.toString());
             System.exit(1);
         }
     }
 
-    public MiddlewareTCPServer(String name, String flightHost, int flightPort, String carHost, int carPort, String roomHost, int roomPort, String customerHost, int customerPort)
-    {
-        super(name,flightHost,flightPort,carHost,carPort, roomHost, roomPort,customerHost, customerPort);
+    public MiddlewareTCPServer(String name, String flightHost, int flightPort, String carHost, int carPort,
+            String roomHost, int roomPort, String customerHost, int customerPort) {
+        super(name, flightHost, flightPort, carHost, carPort, roomHost, roomPort, customerHost, customerPort);
     }
 
     private void start(int port) {
@@ -74,7 +73,7 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager{
             System.out.println("Listening on port: " + port);
             while (true)
                 new ClientHandler(serverSocket.accept()).start();
-        } catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         } finally {
             stop();
@@ -86,12 +85,34 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager{
             this.close();
             serverSocket.close();
             System.out.println("'Middleware:" + s_serverPort + "' Server Socket closed");
-        }
-        catch(IOException e) {
-            System.err.println((char)27 + "[31;1mMiddleware exception: " + (char)27 + e.toString());
+        } catch (IOException e) {
+            System.err.println((char) 27 + "[31;1mMiddleware exception: " + (char) 27 + e.toString());
         }
     }
 
+    public static Vector<String> parse(String input) {
+        if (input != null && input.length() != 0) {
+
+            String command;
+
+            if (input.charAt(0) == '[' && input.charAt(input.length() - 1) == ']') {
+                // If there are brackets, remove them.
+                command = input.substring(1, input.length() - 1);
+            } else {
+                command = input;
+            }
+            Vector<String> arguments = new Vector<String>();
+            String[] commandParts = command.split(", ");
+            for (int i = 0; i < commandParts.length; i++) {
+                arguments.add(commandParts[i].trim());
+            }
+
+            return arguments;
+        }
+
+        return null;
+
+    }
 
     private static class ClientHandler extends Thread {
         private Socket clientSocket;
@@ -108,7 +129,7 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager{
                 in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 String inputLine = in.readLine();
 
-                Vector<String> parsedCommand = Parser.parse(inputLine);
+                Vector<String> parsedCommand = parse(inputLine);
 
                 if (parsedCommand == null) {
                     out.println("");
@@ -124,8 +145,9 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager{
                 in.close();
                 out.close();
                 clientSocket.close();
-            } catch(IOException e) {
-                System.err.println((char)27 + "[31;1mMiddleware exception: " + (char)27 + "[0m" + e.getLocalizedMessage());
+            } catch (IOException e) {
+                System.err.println(
+                        (char) 27 + "[31;1mMiddleware exception: " + (char) 27 + "[0m" + e.getLocalizedMessage());
             }
         }
     }
