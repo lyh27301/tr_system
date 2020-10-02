@@ -1,7 +1,7 @@
 
 public class MiddlewareTCPServer extends MiddlewareResourceManager{
 
-    private static TCPMiddleware middleware = null;
+    private static MiddlewareTCPServer middleware = null;
 
     private static int serverPort = 6116;
     private ServerSocket serverSocket;
@@ -57,7 +57,7 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager{
         }
     }
 
-    public TCPMiddleware(String p_name, String flightIP, int flightPort, String carIP, int carPort, String roomIP, int roomPort)
+    public MiddlewareTCPServer(String p_name, String flightIP, int flightPort, String carIP, int carPort, String roomIP, int roomPort)
     {
         super(p_name,flightIP,flightPort,carIP,carPort,roomIP,roomPort);
     }

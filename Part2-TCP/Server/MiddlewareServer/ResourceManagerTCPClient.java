@@ -14,7 +14,7 @@ public class ResourceManagerTCPClient
     private String host;
     private int port;
 
-    public TCPClient(String host, int port) {
+    public ResourceManagerTCPClient(String host, int port) {
         this.host = host;
         this.port = port;
         this.connect();
