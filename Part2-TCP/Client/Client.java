@@ -1,24 +1,19 @@
 package Client;
 
-import Server.Interface.*;
-
 import java.util.*;
 import java.io.*;
-import java.rmi.RemoteException;
-import java.rmi.ConnectException;
-import java.rmi.ServerException;
-import java.rmi.UnmarshalException;
 
 public abstract class Client
 {
-	IResourceManager m_resourceManager = null;
 
-	public Client()
-	{
-		super();
+	public enum TYPE {
+		BOOL, INT, STR
 	}
 
 	public abstract void connectServer();
+
+	public abstract void outToMiddleware(String args, String successMsg, String failureMsg, TYPE type) throws IOException;
+
 
 	public void start()
 	{
@@ -49,16 +44,13 @@ public abstract class Client
 				try {
 					execute(cmd, arguments);
 				}
-				catch (ConnectException e) {
+				catch (IOException io) {
 					connectServer();
 					execute(cmd, arguments);
 				}
 			}
-			catch (IllegalArgumentException|ServerException e) {
+			catch (IllegalArgumentException e) {
 				System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0m" + e.getLocalizedMessage());
-			}
-			catch (ConnectException|UnmarshalException e) {
-				System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mConnection to server lost");
 			}
 			catch (Exception e) {
 				System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mUncaught exception");
@@ -67,7 +59,7 @@ public abstract class Client
 		}
 	}
 
-	public void execute(Command cmd, Vector<String> arguments) throws RemoteException, NumberFormatException
+	public void execute(Command cmd, Vector<String> arguments) throws IOException, NumberFormatException
 	{
 		switch (cmd)
 		{
@@ -91,16 +83,7 @@ public abstract class Client
 				System.out.println("-Flight Seats: " + arguments.elementAt(3));
 				System.out.println("-Flight Price: " + arguments.elementAt(4));
 
-				int id = toInt(arguments.elementAt(1));
-				int flightNum = toInt(arguments.elementAt(2));
-				int flightSeats = toInt(arguments.elementAt(3));
-				int flightPrice = toInt(arguments.elementAt(4));
-
-				if (m_resourceManager.addFlight(id, flightNum, flightSeats, flightPrice)) {
-					System.out.println("Flight added");
-				} else {
-					System.out.println("Flight could not be added");
-				}
+				outToMiddleware(arguments.toString(), "Flight added", "Flight could not be added", TYPE.BOOL);
 				break;
 			}
 			case AddCars: {
@@ -111,16 +94,8 @@ public abstract class Client
 				System.out.println("-Number of Cars: " + arguments.elementAt(3));
 				System.out.println("-Car Price: " + arguments.elementAt(4));
 
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
-				int numCars = toInt(arguments.elementAt(3));
-				int price = toInt(arguments.elementAt(4));
-
-				if (m_resourceManager.addCars(id, location, numCars, price)) {
-					System.out.println("Cars added");
-				} else {
-					System.out.println("Cars could not be added");
-				}
+				outToMiddleware(arguments.toString(), "Cars added", "Cars could not be added", TYPE.BOOL);
+				
 				break;
 			}
 			case AddRooms: {
@@ -131,16 +106,7 @@ public abstract class Client
 				System.out.println("-Number of Rooms: " + arguments.elementAt(3));
 				System.out.println("-Room Price: " + arguments.elementAt(4));
 
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
-				int numRooms = toInt(arguments.elementAt(3));
-				int price = toInt(arguments.elementAt(4));
-
-				if (m_resourceManager.addRooms(id, location, numRooms, price)) {
-					System.out.println("Rooms added");
-				} else {
-					System.out.println("Rooms could not be added");
-				}
+				outToMiddleware(arguments.toString(), "Rooms added", "Rooms could not be added", TYPE.BOOL);
 				break;
 			}
 			case AddCustomer: {
@@ -148,10 +114,8 @@ public abstract class Client
 
 				System.out.println("Adding a new customer [xid=" + arguments.elementAt(1) + "]");
 
-				int id = toInt(arguments.elementAt(1));
-				int customer = m_resourceManager.newCustomer(id);
+				outToMiddleware(arguments.toString(), "Add Customer ID: ", "Customer could not be added", TYPE.INT);
 
-				System.out.println("Add customer ID: " + customer);
 				break;
 			}
 			case AddCustomerID: {
@@ -160,14 +124,10 @@ public abstract class Client
 				System.out.println("Adding a new customer [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Customer ID: " + arguments.elementAt(2));
 
-				int id = toInt(arguments.elementAt(1));
 				int customerID = toInt(arguments.elementAt(2));
 
-				if (m_resourceManager.newCustomer(id, customerID)) {
-					System.out.println("Add customer ID: " + customerID);
-				} else {
-					System.out.println("Customer could not be added");
-				}
+				outToMiddleware(arguments.toString(), "Add Customer ID: " + customerID, "Customer could not be added", TYPE.BOOL);
+
 				break;
 			}
 			case DeleteFlight: {
@@ -176,14 +136,8 @@ public abstract class Client
 				System.out.println("Deleting a flight [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Flight Number: " + arguments.elementAt(2));
 
-				int id = toInt(arguments.elementAt(1));
-				int flightNum = toInt(arguments.elementAt(2));
+				outToMiddleware(arguments.toString(), "Flight Deleted", "Flight could not be deleted", TYPE.BOOL);
 
-				if (m_resourceManager.deleteFlight(id, flightNum)) {
-					System.out.println("Flight Deleted");
-				} else {
-					System.out.println("Flight could not be deleted");
-				}
 				break;
 			}
 			case DeleteCars: {
@@ -192,30 +146,18 @@ public abstract class Client
 				System.out.println("Deleting all cars at a particular location [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Car Location: " + arguments.elementAt(2));
 
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
+				outToMiddleware(arguments.toString(), "Cars Deleted", "Cars could not be deleted", TYPE.BOOL);
 
-				if (m_resourceManager.deleteCars(id, location)) {
-					System.out.println("Cars Deleted");
-				} else {
-					System.out.println("Cars could not be deleted");
-				}
 				break;
 			}
 			case DeleteRooms: {
 				checkArgumentsCount(3, arguments.size());
 
 				System.out.println("Deleting all rooms at a particular location [xid=" + arguments.elementAt(1) + "]");
-				System.out.println("-Car Location: " + arguments.elementAt(2));
+				System.out.println("-Room Location: " + arguments.elementAt(2));
 
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
-
-				if (m_resourceManager.deleteRooms(id, location)) {
-					System.out.println("Rooms Deleted");
-				} else {
-					System.out.println("Rooms could not be deleted");
-				}
+				outToMiddleware(arguments.toString(), "Rooms Deleted", "Rooms could not be deleted", TYPE.BOOL);
+			
 				break;
 			}
 			case DeleteCustomer: {
@@ -223,15 +165,9 @@ public abstract class Client
 
 				System.out.println("Deleting a customer from the database [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Customer ID: " + arguments.elementAt(2));
-				
-				int id = toInt(arguments.elementAt(1));
-				int customerID = toInt(arguments.elementAt(2));
+			
+				outToMiddleware(arguments.toString(), "Customer Deleted", "Customer could not be deleted", TYPE.BOOL);
 
-				if (m_resourceManager.deleteCustomer(id, customerID)) {
-					System.out.println("Customer Deleted");
-				} else {
-					System.out.println("Customer could not be deleted");
-				}
 				break;
 			}
 			case QueryFlight: {
@@ -239,12 +175,9 @@ public abstract class Client
 
 				System.out.println("Querying a flight [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Flight Number: " + arguments.elementAt(2));
-				
-				int id = toInt(arguments.elementAt(1));
-				int flightNum = toInt(arguments.elementAt(2));
 
-				int seats = m_resourceManager.queryFlight(id, flightNum);
-				System.out.println("Number of seats available: " + seats);
+				outToMiddleware(arguments.toString(), "Number of seats available: ", "Query failed", TYPE.INT);
+				
 				break;
 			}
 			case QueryCars: {
@@ -252,12 +185,9 @@ public abstract class Client
 
 				System.out.println("Querying cars location [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Car Location: " + arguments.elementAt(2));
-				
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
+				 
+				outToMiddleware(arguments.toString(), "Number of cars at this location: ", "Query failed", TYPE.INT);
 
-				int numCars = m_resourceManager.queryCars(id, location);
-				System.out.println("Number of cars at this location: " + numCars);
 				break;
 			}
 			case QueryRooms: {
@@ -265,12 +195,9 @@ public abstract class Client
 
 				System.out.println("Querying rooms location [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Room Location: " + arguments.elementAt(2));
-				
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
+				 
+				outToMiddleware(arguments.toString(), "Number of rooms at this location: ", "Query failed", TYPE.INT);
 
-				int numRoom = m_resourceManager.queryRooms(id, location);
-				System.out.println("Number of rooms at this location: " + numRoom);
 				break;
 			}
 			case QueryCustomer: {
@@ -279,11 +206,8 @@ public abstract class Client
 				System.out.println("Querying customer information [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Customer ID: " + arguments.elementAt(2));
 
-				int id = toInt(arguments.elementAt(1));
-				int customerID = toInt(arguments.elementAt(2));
+				outToMiddleware(arguments.toString(), "", "Query failed", TYPE.STR);
 
-				String bill = m_resourceManager.queryCustomerInfo(id, customerID);
-				System.out.print(bill);
 				break;               
 			}
 			case QueryFlightPrice: {
@@ -291,12 +215,9 @@ public abstract class Client
 				
 				System.out.println("Querying a flight price [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Flight Number: " + arguments.elementAt(2));
+				
+				outToMiddleware( arguments.toString(), "Price of a seat: ", "Could not query price of seat", TYPE.INT);
 
-				int id = toInt(arguments.elementAt(1));
-				int flightNum = toInt(arguments.elementAt(2));
-
-				int price = m_resourceManager.queryFlightPrice(id, flightNum);
-				System.out.println("Price of a seat: " + price);
 				break;
 			}
 			case QueryCarsPrice: {
@@ -304,12 +225,9 @@ public abstract class Client
 
 				System.out.println("Querying cars price [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Car Location: " + arguments.elementAt(2));
-
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
-
-				int price = m_resourceManager.queryCarsPrice(id, location);
-				System.out.println("Price of cars at this location: " + price);
+ 
+				outToMiddleware( arguments.toString(), "Price of cars at this location: ", "Could not query price of cars", TYPE.INT);
+				
 				break;
 			}
 			case QueryRoomsPrice: {
@@ -317,12 +235,9 @@ public abstract class Client
 
 				System.out.println("Querying rooms price [xid=" + arguments.elementAt(1) + "]");
 				System.out.println("-Room Location: " + arguments.elementAt(2));
+ 
+				outToMiddleware( arguments.toString(), "Price of rooms at this location: ", "Could not query price of rooms", TYPE.INT);
 
-				int id = toInt(arguments.elementAt(1));
-				String location = arguments.elementAt(2);
-
-				int price = m_resourceManager.queryRoomsPrice(id, location);
-				System.out.println("Price of rooms at this location: " + price);
 				break;
 			}
 			case ReserveFlight: {
@@ -332,15 +247,8 @@ public abstract class Client
 				System.out.println("-Customer ID: " + arguments.elementAt(2));
 				System.out.println("-Flight Number: " + arguments.elementAt(3));
 
-				int id = toInt(arguments.elementAt(1));
-				int customerID = toInt(arguments.elementAt(2));
-				int flightNum = toInt(arguments.elementAt(3));
+				outToMiddleware( arguments.toString(), "Flight Reserved", "Flight could not be reserved", TYPE.BOOL);
 
-				if (m_resourceManager.reserveFlight(id, customerID, flightNum)) {
-					System.out.println("Flight Reserved");
-				} else {
-					System.out.println("Flight could not be reserved");
-				}
 				break;
 			}
 			case ReserveCar: {
@@ -350,15 +258,8 @@ public abstract class Client
 				System.out.println("-Customer ID: " + arguments.elementAt(2));
 				System.out.println("-Car Location: " + arguments.elementAt(3));
 
-				int id = toInt(arguments.elementAt(1));
-				int customerID = toInt(arguments.elementAt(2));
-				String location = arguments.elementAt(3);
+				outToMiddleware( arguments.toString(), "Car Reserved", "Car could not be reserved", TYPE.BOOL);
 
-				if (m_resourceManager.reserveCar(id, customerID, location)) {
-					System.out.println("Car Reserved");
-				} else {
-					System.out.println("Car could not be reserved");
-				}
 				break;
 			}
 			case ReserveRoom: {
@@ -368,15 +269,8 @@ public abstract class Client
 				System.out.println("-Customer ID: " + arguments.elementAt(2));
 				System.out.println("-Room Location: " + arguments.elementAt(3));
 				
-				int id = toInt(arguments.elementAt(1));
-				int customerID = toInt(arguments.elementAt(2));
-				String location = arguments.elementAt(3);
+				outToMiddleware( arguments.toString(), "Room Reserved", "Room could not be reserved", TYPE.BOOL);
 
-				if (m_resourceManager.reserveRoom(id, customerID, location)) {
-					System.out.println("Room Reserved");
-				} else {
-					System.out.println("Room could not be reserved");
-				}
 				break;
 			}
 			case Bundle: {
@@ -395,22 +289,15 @@ public abstract class Client
 				System.out.println("-Book Car: " + arguments.elementAt(arguments.size()-2));
 				System.out.println("-Book Room: " + arguments.elementAt(arguments.size()-1));
 
-				int id = toInt(arguments.elementAt(1));
-				int customerID = toInt(arguments.elementAt(2));
+		
 				Vector<String> flightNumbers = new Vector<String>();
 				for (int i = 0; i < arguments.size() - 6; ++i)
 				{
 					flightNumbers.addElement(arguments.elementAt(3+i));
 				}
-				String location = arguments.elementAt(arguments.size()-3);
-				boolean car = toBoolean(arguments.elementAt(arguments.size()-2));
-				boolean room = toBoolean(arguments.elementAt(arguments.size()-1));
 
-				if (m_resourceManager.bundle(id, customerID, flightNumbers, location, car, room)) {
-					System.out.println("Bundle Reserved");
-				} else {
-					System.out.println("Bundle could not be reserved");
-				}
+				outToMiddleware(arguments.toString(), "Bundle Reserved", "Bundle could not be reserved", TYPE.BOOL);
+
 				break;
 			}
 			case Quit:
@@ -452,4 +339,5 @@ public abstract class Client
 	{
 		return (Boolean.valueOf(string)).booleanValue();
 	}
+
 }
