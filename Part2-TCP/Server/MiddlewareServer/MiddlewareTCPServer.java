@@ -1,9 +1,15 @@
+package Server.MiddlewareServer;
+
+import java.io.*;
+import java.net.ServerSocket;
+import java.net.*;
+import java.util.Vector;
 
 public class MiddlewareTCPServer extends MiddlewareResourceManager{
 
     private static MiddlewareTCPServer middleware = null;
 
-    private static int serverPort = 6116;
+    private static int s_serverPort = 6116;
     private ServerSocket serverSocket;
 
     private static String flightHost = "localhost";
@@ -42,7 +48,7 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager{
                 customerPort = Integer.parseInt(customerInfo[1]);
             }
 
-            middleware = new MiddlewareTCPServer("Middleware",flightHost, flightPort, carHost, carPort, roomHost, roomPort, customerHost, customerPort));
+            middleware = new MiddlewareTCPServer("Middleware",flightHost, flightPort, carHost, carPort, roomHost, roomPort, customerHost, customerPort);
 
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 public void run() {
@@ -57,9 +63,9 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager{
         }
     }
 
-    public MiddlewareTCPServer(String p_name, String flightIP, int flightPort, String carIP, int carPort, String roomIP, int roomPort)
+    public MiddlewareTCPServer(String name, String flightHost, int flightPort, String carHost, int carPort, String roomHost, int roomPort, String customerHost, int customerPort)
     {
-        super(p_name,flightIP,flightPort,carIP,carPort,roomIP,roomPort);
+        super(name,flightHost,flightPort,carHost,carPort, roomHost, roomPort,customerHost, customerPort);
     }
 
     private void start(int port) {
