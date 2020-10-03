@@ -36,7 +36,6 @@ public class TCPClient extends Client {
 
         try {
             TCPClient client = new TCPClient();
-            client.connectServer();
         }
 
         catch (Exception e) {
