@@ -9,6 +9,7 @@ import Server.Interface.IResourceManager;
 import Server.Interface.IRoomManager;
 
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.Vector;
 
 public class MiddlewareResourceManager implements IResourceManager {
