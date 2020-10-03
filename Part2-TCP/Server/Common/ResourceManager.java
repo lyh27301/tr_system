@@ -146,8 +146,7 @@ public class ResourceManager
 
 	// Create a new flight, or add seats to existing flight
 	// NOTE: if flightPrice <= 0 and the flight already exists, it maintains its current price
-	public boolean addFlight(int xid, int flightNum, int flightSeats, int flightPrice) 
-	{
+	public boolean addFlight(int xid, int flightNum, int flightSeats, int flightPrice) throws IOException {
 		Trace.info("RM::addFlight(" + xid + ", " + flightNum + ", " + flightSeats + ", $" + flightPrice + ") called");
 		Flight curObj = (Flight)readData(xid, Flight.getKey(flightNum));
 		if (curObj == null)
@@ -173,8 +172,7 @@ public class ResourceManager
 
 	// Create a new car location or add cars to an existing location
 	// NOTE: if price <= 0 and the location already exists, it maintains its current price
-	public boolean addCars(int xid, String location, int count, int price)
-	{
+	public boolean addCars(int xid, String location, int count, int price) throws IOException {
 		Trace.info("RM::addCars(" + xid + ", " + location + ", " + count + ", $" + price + ") called");
 		Car curObj = (Car)readData(xid, Car.getKey(location));
 		if (curObj == null)
@@ -200,8 +198,7 @@ public class ResourceManager
 
 	// Create a new room location or add rooms to an existing location
 	// NOTE: if price <= 0 and the room location already exists, it maintains its current price
-	public boolean addRooms(int xid, String location, int count, int price)
-	{
+	public boolean addRooms(int xid, String location, int count, int price) throws IOException {
 		Trace.info("RM::addRooms(" + xid + ", " + location + ", " + count + ", $" + price + ") called");
 		Room curObj = (Room)readData(xid, Room.getKey(location));
 		if (curObj == null)
@@ -224,61 +221,51 @@ public class ResourceManager
 	}
 
 	// Deletes flight
-	public boolean deleteFlight(int xid, int flightNum)
-	{
+	public boolean deleteFlight(int xid, int flightNum) throws IOException {
 		return deleteItem(xid, Flight.getKey(flightNum));
 	}
 
 	// Delete cars at a location
-	public boolean deleteCars(int xid, String location)
-	{
+	public boolean deleteCars(int xid, String location) throws IOException {
 		return deleteItem(xid, Car.getKey(location));
 	}
 
 	// Delete rooms at a location
-	public boolean deleteRooms(int xid, String location)
-	{
+	public boolean deleteRooms(int xid, String location) throws IOException {
 		return deleteItem(xid, Room.getKey(location));
 	}
 
 	// Returns the number of empty seats in this flight
-	public int queryFlight(int xid, int flightNum)
-	{
+	public int queryFlight(int xid, int flightNum) throws IOException {
 		return queryNum(xid, Flight.getKey(flightNum));
 	}
 
 	// Returns the number of cars available at a location
-	public int queryCars(int xid, String location)
-	{
+	public int queryCars(int xid, String location) throws IOException {
 		return queryNum(xid, Car.getKey(location));
 	}
 
 	// Returns the amount of rooms available at a location
-	public int queryRooms(int xid, String location)
-	{
+	public int queryRooms(int xid, String location) throws IOException {
 		return queryNum(xid, Room.getKey(location));
 	}
 
 	// Returns price of a seat in this flight
-	public int queryFlightPrice(int xid, int flightNum)
-	{
+	public int queryFlightPrice(int xid, int flightNum) throws IOException {
 		return queryPrice(xid, Flight.getKey(flightNum));
 	}
 
 	// Returns price of cars at this location
-	public int queryCarsPrice(int xid, String location)
-	{
+	public int queryCarsPrice(int xid, String location) throws IOException {
 		return queryPrice(xid, Car.getKey(location));
 	}
 
 	// Returns room price at this location
-	public int queryRoomsPrice(int xid, String location)
-	{
+	public int queryRoomsPrice(int xid, String location) throws IOException {
 		return queryPrice(xid, Room.getKey(location));
 	}
 
-	public String queryCustomerInfo(int xid, int customerID)
-	{
+	public String queryCustomerInfo(int xid, int customerID) throws IOException {
 		Trace.info("RM::queryCustomerInfo(" + xid + ", " + customerID + ") called");
 		Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
 		if (customer == null)
@@ -295,8 +282,7 @@ public class ResourceManager
 		}
 	}
 
-	public int newCustomer(int xid)
-	{
+	public int newCustomer(int xid) throws IOException {
         	Trace.info("RM::newCustomer(" + xid + ") called");
 		// Generate a globally unique ID for the new customer
 		int cid = Integer.parseInt(String.valueOf(xid) +
@@ -308,8 +294,7 @@ public class ResourceManager
 		return cid;
 	}
 
-	public boolean newCustomer(int xid, int customerID)
-	{
+	public boolean newCustomer(int xid, int customerID) throws IOException {
 		Trace.info("RM::newCustomer(" + xid + ", " + customerID + ") called");
 		Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
 		if (customer == null)
@@ -326,8 +311,7 @@ public class ResourceManager
 		}
 	}
 
-	public boolean deleteCustomer(int xid, int customerID)
-	{
+	public boolean deleteCustomer(int xid, int customerID) throws IOException {
 		Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") called");
 		Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
 		if (customer == null)
@@ -358,20 +342,17 @@ public class ResourceManager
 	}
 
 	// Adds flight reservation to this customer
-	public boolean reserveFlight(int xid, int customerID, int flightNum)
-	{
+	public boolean reserveFlight(int xid, int customerID, int flightNum) throws IOException {
 		return reserveItem(xid, customerID, Flight.getKey(flightNum), String.valueOf(flightNum));
 	}
 
 	// Adds car reservation to this customer
-	public boolean reserveCar(int xid, int customerID, String location)
-	{
+	public boolean reserveCar(int xid, int customerID, String location) throws IOException {
 		return reserveItem(xid, customerID, Car.getKey(location), location);
 	}
 
 	// Adds room reservation to this customer
-	public boolean reserveRoom(int xid, int customerID, String location)
-	{
+	public boolean reserveRoom(int xid, int customerID, String location) throws IOException {
 		return reserveItem(xid, customerID, Room.getKey(location), location);
 	}
 
