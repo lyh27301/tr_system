@@ -24,6 +24,10 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
     private static String customerHost = "localhost";
     private static int customerPort = 6516;
 
+    public enum TYPE {
+		BOOL, INT, STR
+	}
+
     public static void main(String[] args) {
         try {
 
@@ -162,11 +166,11 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
             }
         }
         public String execute(Vector<String> command){
-            char type = 'S';
+            TYPE type = TYPE.STR;
             try {
                 switch (command.get(0).toLowerCase()) {
                     case "addflight": {
-                        type = 'B';
+                        type = TYPE.BOOL;
                         int xid = Integer.parseInt(command.get(1));
                         int flightNumber = Integer.parseInt(command.get(2));
                         int num = Integer.parseInt(command.get(3));
@@ -174,7 +178,7 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
                         return Boolean.toString(middleware.addFlight(xid, flightNumber, num, price));
                     }
                     case "addcars": {
-                        type = 'B';
+                        type = TYPE.BOOL;
                         int xid = Integer.parseInt(command.get(1));
                         String location = command.get(2);
                         int num = Integer.parseInt(command.get(3));
@@ -182,7 +186,7 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
                         return Boolean.toString(middleware.addCars(xid, location, num, price));
                     }
                     case "addrooms": {
-                        type = 'B';
+                        type = TYPE.BOOL;
                         int xid = Integer.parseInt(command.get(1));
                         String location = command.get(2);
                         int num = Integer.parseInt(command.get(3));
@@ -190,116 +194,116 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
                         return Boolean.toString(middleware.addRooms(xid, location, num, price));
                     }
                     case "addcustomer": {
-                        type = 'I';
+                        type = TYPE.INT;
                         int xid = Integer.parseInt(command.get(1));
                         return Integer.toString(middleware.newCustomer(xid));
                     }
                     case "addcustomerid": {
-                        type = 'B';
+                        type = TYPE.BOOL;
                         int xid = Integer.parseInt(command.get(1));
                         int id = Integer.parseInt(command.get(2));
                         return Boolean.toString(middleware.newCustomer(xid, id));
                     }
                     case "deleteflight": {
-                        type = 'B';
+                        type = TYPE.BOOL;
                         int xid = Integer.parseInt(command.get(1));
                         int flightNum = Integer.parseInt(command.get(2));
                         return Boolean.toString(middleware.deleteFlight(xid, flightNum));
                     }
                     case "deletecars": {
-                        type = 'B';
+                        type = TYPE.BOOL;
                         int xid = Integer.parseInt(command.get(1));
                         String location = command.get(2);
                         return Boolean.toString(middleware.deleteCars(xid, location));
                     }
                     case "deleterooms": {
-                        type = 'B';
+                        type = TYPE.BOOL;
                         int xid = Integer.parseInt(command.get(1));
                         String location = command.get(2);
                         return Boolean.toString(middleware.deleteRooms(xid, location));
                     }
                     case "deletecustomer": {
-                        type = 'B';
+                        type = TYPE.BOOL;
                         int xid = Integer.parseInt(command.get(1));
                         int customerID = Integer.parseInt(command.get(2));
                         return Boolean.toString(middleware.deleteCustomer(xid, customerID));
                     }
                     case "queryflight": {
-                        type = 'I';
+                        type = TYPE.INT;
                         int xid = Integer.parseInt(command.get(1));
                         int flightNum = Integer.parseInt(command.get(2));
                         return Integer.toString(middleware.queryFlight(xid, flightNum));
                     }
                     case "querycars": {
-                        type = 'I';
+                        type = TYPE.INT;
                         int xid = Integer.parseInt(command.get(1));
                         String location = command.get(2);
                         return Integer.toString(middleware.queryCars(xid, location));
                     }
                     case "queryrooms": {
-                        type = 'I';
+                        type = TYPE.INT;
                         int xid = Integer.parseInt(command.get(1));
                         String location = command.get(2);
                         return Integer.toString(middleware.queryRooms(xid, location));
                     }
                     case "querycustomer": {
-                        type = 'S';
+                        type = TYPE.STR;
                         int xid = Integer.parseInt(command.get(1));
                         int customerID = Integer.parseInt(command.get(2));
                         return middleware.queryCustomerInfo(xid, customerID);
                     }
 //                    case "summary": {
-//                        type = 'S';
+//                        type = TYPE.STR;
 //                        int xid = Integer.parseInt(command.get(1));
 //                        return manager.Summary(xid);
 //                    }
 //                    case "analytics": {
-//                        type = 'S';
+//                        type = TYPE.STR;
 //                        int xid = Integer.parseInt(command.get(1));
 //                        int upperBound = Integer.parseInt(command.get(2));
 //                        return manager.Analytics(xid,upperBound);
 //                    }
                     case "queryflightprice": {
-                        type = 'I';
+                        type = TYPE.INT;
                         int xid = Integer.parseInt(command.get(1));
                         int flightNum = Integer.parseInt(command.get(2));
                         return Integer.toString(middleware.queryFlightPrice(xid, flightNum));
                     }
                     case "querycarsprice": {
-                        type = 'I';
+                        type = TYPE.INT;
                         int xid = Integer.parseInt(command.get(1));
                         String location = command.get(2);
                         return Integer.toString(middleware.queryCarsPrice(xid, location));
                     }
                     case "queryroomsprice": {
-                        type = 'I';
+                        type = TYPE.INT;
                         int xid = Integer.parseInt(command.get(1));
                         String location = command.get(2);
                         return Integer.toString(middleware.queryRoomsPrice(xid, location));
                     }
                     case "reserveflight": {
-                        type = 'B';
+                        type = TYPE.BOOL;
                         int xid = Integer.parseInt(command.get(1));
                         int customerID = Integer.parseInt(command.get(2));
                         int flightNum = Integer.parseInt(command.get(3));
                         return Boolean.toString(middleware.reserveFlight(xid, customerID, flightNum));
                     }
                     case "reservecar": {
-                        type = 'B';
+                        type = TYPE.BOOL;
                         int xid = Integer.parseInt(command.get(1));
                         int customerID = Integer.parseInt(command.get(2));
                         String location = command.get(3);
                         return Boolean.toString(middleware.reserveCar(xid, customerID, location));
                     }
                     case "reserveroom": {
-                        type = 'B';
+                        type = TYPE.BOOL;
                         int xid = Integer.parseInt(command.get(1));
                         int customerID = Integer.parseInt(command.get(2));
                         String location = command.get(3);
                         return Boolean.toString(middleware.reserveRoom(xid, customerID, location));
                     }
                     case "bundle": {
-                        type = 'B';
+                        type = TYPE.BOOL;
                         int xid = Integer.parseInt(command.get(1));
                         int customerID = Integer.parseInt(command.get(2));
 
@@ -316,7 +320,7 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
                         return Boolean.toString(middleware.bundle(xid, customerID, flightNumbers, location, car, room));
                     }
 //                    case "removereservation": {
-//                        type = 'B';
+//                        type = TYPE.BOOL;
 //                        int xid = Integer.parseInt(command.get(1));
 //                        int customerID = Integer.parseInt(command.get(2));
 //                        String reserveditemKey = command.get(3);
@@ -325,7 +329,7 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
 //                        return Boolean.toString(middleware.removeReservation(xid, customerID, reserveditemKey, reserveditemCount));
 //                    }
 //                    case "itemsavailable": {
-//                        type = 'I';
+//                        type = TYPE.INT;
 //                        int xid = Integer.parseInt(command.get(1));
 //                        String key = command.get(2);
 //                        int quantity = Integer.parseInt(command.get(3));
@@ -336,9 +340,9 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
             } catch(Exception e) {
                 System.err.println((char)27 + "[31;1mExecution exception: " + (char)27 + "[0m" + e.getLocalizedMessage());
             }
-            if (type == 'S')
+            if (type == TYPE.STR)
                 return "";
-            else if (type == 'B')
+            else if (type == TYPE.BOOL)
                 return "false";
             else
                 return "-1";

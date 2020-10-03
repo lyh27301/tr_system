@@ -36,9 +36,8 @@ public class TCPClient extends Client {
 
         try {
             TCPClient client = new TCPClient();
-        }
-
-        catch (Exception e) {
+            client.start();
+        } catch (Exception e) {
             System.err.println((char) 27 + "[31;1mClient exception: " + (char) 27 + "[0mUncaught exception");
             e.printStackTrace();
             System.exit(1);
