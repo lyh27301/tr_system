@@ -83,58 +83,6 @@ public class MiddlewareResourceManager extends ResourceManager{
         String command = String.format("DeleteCustomer,%d,%d",xid,customerID);
         return toBool(send(customerTCPClient,'B',command,true));
     }
-//
-//    public boolean deleteCustomer(int xid, int customerID)
-//    {
-//        Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") called");
-//        Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
-//        if (customer == null)
-//        {
-//            Trace.warn("RM::deleteCustomer(" + xid + ", " + customerID + ") failed--customer doesn't exist");
-//            return false;
-//        }
-//        else
-//        {
-//            synchronized (customer) {
-//                // Increase the reserved numbers of all reservable items which the customer reserved.
-//                RMHashMap reservations = customer.getReservations();
-//                for (String reservedKey : reservations.keySet()) {
-//                    String type = reservedKey.split("-")[0];
-//                    ReservedItem reserveditem = customer.getReservedItem(reservedKey);
-//                    String command = String.format("RemoveReservation,%d,%d,%s,%d", xid, customerID, reserveditem.getKey(), reserveditem.getCount());
-//
-//                    if (type.equals("flight")) {
-//                        synchronized (flightTCPClient) {
-//                            try {
-//                                flightTCPClient.sendMessage(command);
-//                            } catch (Exception e) {
-//                            }
-//                        }
-//                    } else if (type.equals("car")) {
-//                        synchronized (carTCPClient) {
-//                            try {
-//                                carTCPClient.sendMessage(command);
-//                            } catch (Exception e) {
-//                            }
-//                        }
-//                    } else if (type.equals("room")) {
-//                        synchronized (roomTCPClient) {
-//                            try {
-//                                roomTCPClient.sendMessage(command);
-//                            } catch (Exception e) {
-//                            }
-//                        }
-//                    } else
-//                        Trace.error("RM::deleteCustomer(" + xid + ", " + customerID + ") failed--reservedKey (" + reservedKey + ") wasn't of expected type.");
-//                }
-//                // Remove the customer from the storage
-//                removeData(xid, customer.getKey());
-//                Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") succeeded");
-//            }
-//            return true;
-//        }
-//
-//    }
 
     public int queryFlight(int id, int flightNumber)
     {
@@ -183,151 +131,25 @@ public class MiddlewareResourceManager extends ResourceManager{
         String command = String.format("QueryRoomsPrice,%d,%s",id,location);
         return toInt(send(roomTCPClient,'I',command,false));
     }
+
     public boolean reserveFlight(int xid, int customerID, int flightNumber){
         Trace.info("reserveFlight - Redirect to Flight Resource Manager");
         String command = String.format("ReserveFlight,%d,%d,%d", xid, customerID, flightNumber);
         return toBool(send(flightTCPClient,'B',command,true));
     }
-//    public boolean reserveFlight(int xid, int customerID, int flightNumber)
-//    {
-//        String key = Flight.getKey(flightNumber);
-//
-//        Trace.info("RM::reserveFlight(" + xid + ", customer=" + customerID + ", " + key + ") called" );
-//        // Check customer exists
-//        Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
-//        if (customer == null)
-//        {
-//            Trace.warn("RM::reserveItem(" + xid + ", " + customerID + ", " + flightNumber + ")  failed--customer doesn't exist");
-//            return false;
-//        }
-//        synchronized (customer) {
-//            synchronized (flightTCPClient) {
-//                int price = -1;
-//                try {
-//                    price = toInt(flightTCPClient.sendMessage(String.format("ItemsAvailable,%d,%s,%d", xid, key, 1)));
-//                } catch (Exception e) {
-//                }
-//
-//
-//                if (price < 0) {
-//                    Trace.warn("RM::reserveItem(" + xid + ", " + customerID + ", " + flightNumber + ")  failed--item unavailable");
-//                    return false;
-//                }
-//
-//                boolean reserved = false;
-//
-//                try {
-//                    String c = String.format("ReserveFlight,%d,%d,%d", xid, customerID, flightNumber);
-//                    reserved = toBool(flightTCPClient.sendMessage(c));
-//                } catch (Exception e) {
-//                }
-//
-//                if (reserved) {
-//                    customer.reserve(key, String.valueOf(flightNumber), price);
-//                    writeData(xid, customer.getKey(), customer);
-//                    return true;
-//                }
-//                Trace.warn("RM::reserveItem(" + xid + ", " + customerID + ", " + flightNumber + ")  failed--Could not reserve item");
-//                return false;
-//            }
-//        }
-//    }
-    public boolean reserveCar(int xid, int customerID, String location){
+
+    public boolean reserveCar(int xid, int customerID, String location) {
         Trace.info("reserveCar - Redirect to Car Resource Manager");
         String command = String.format("ReserveCar,%d,%d,%s", xid, customerID, location);
-        return toBool(send(carTCPClient,'B',command,true));
-    //toBool(carTCPClient.sendMessage(String.format("ReserveCar,%d,%d,%s", xid, customerID, location)))
+        return toBool(send(carTCPClient, 'B', command, true));
     }
-//    public boolean reserveCar(int xid, int customerID, String location)
-//    {
-//        String key = Car.getKey(location);
-//
-//        Trace.info("RM::reserveCar(" + xid + ", customer=" + customerID + ", " + key + ") called" );
-//        // Check customer exists
-//        Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
-//        if (customer == null)
-//        {
-//            Trace.warn("RM::reserveItem(" + xid + ", " + customerID + ", " + location + ")  failed--customer doesn't exist");
-//            return false;
-//        }
-//        synchronized (customer) {
-//            synchronized (carTCPClient) {
-//                int price = -1;
-//                try {
-//                    price = toInt(carTCPClient.sendMessage(String.format("ItemsAvailable,%d,%s,%d", xid, key, 1)));
-//                } catch (Exception e) {
-//                }
-//
-//                if (price < 0) {
-//                    Trace.warn("RM::reserveItem(" + xid + ", " + customerID + ", " + location + ")  failed--item unavailable");
-//                    return false;
-//                }
-//
-//                boolean reserved = false;
-//
-//                try {
-//                    reserved = toBool(carTCPClient.sendMessage(String.format("ReserveCar,%d,%d,%s", xid, customerID, location)));
-//                } catch (Exception e) {
-//                }
-//
-//                if (reserved) {
-//                    customer.reserve(key, location, price);
-//                    writeData(xid, customer.getKey(), customer);
-//                    return true;
-//                }
-//                Trace.warn("RM::reserveItem(" + xid + ", " + customerID + ", " + location + ")  failed--Could not reserve item");
-//                return false;
-//            }
-//        }
-//    }
-    public boolean reserveRoom(int xid, int customerID, String location){
+
+    public boolean reserveRoom(int xid, int customerID, String location) {
         Trace.info("reserveRoom - Redirect to room Resource Manager");
         String command = String.format("ReserveRoom,%d,%d,%s", xid, customerID, location);
-        return toBool(send(roomTCPClient,'B',command,true));
-        //toBool(carTCPClient.sendMessage(String.format("ReserveCar,%d,%d,%s", xid, customerID, location)))
+        return toBool(send(roomTCPClient, 'B', command, true));
     }
-//    public boolean reserveRoom(int xid, int customerID, String location)
-//    {
-//        String key = Room.getKey(location);
-//
-//        Trace.info("RM::reserveRoom(" + xid + ", customer=" + customerID + ", " + key + ") called" );
-//        // Check customer exists
-//        Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
-//        if (customer == null)
-//        {
-//            Trace.warn("RM::reserveItem(" + xid + ", " + customerID + ", " + location + ")  failed--customer doesn't exist");
-//            return false;
-//        }
-//        synchronized (customer) {
-//            synchronized (roomTCPClient) {
-//                int price = -1;
-//                try {
-//                    price = toInt(roomTCPClient.sendMessage(String.format("ItemsAvailable,%d,%s,%d", xid, key, 1)));
-//                } catch (Exception e) {
-//                }
-//
-//                if (price < 0) {
-//                    Trace.warn("RM::reserveItem(" + xid + ", " + customerID + ", " + location + ")  failed--item unavailable");
-//                    return false;
-//                }
-//
-//                boolean reserved = false;
-//
-//                try {
-//                    reserved = toBool(roomTCPClient.sendMessage(String.format("ReserveRoom,%d,%d,%s", xid, customerID, location)));
-//                } catch (Exception e) {
-//                }
-//
-//                if (reserved) {
-//                    customer.reserve(key, location, price);
-//                    writeData(xid, customer.getKey(), customer);
-//                    return true;
-//                }
-//                Trace.warn("RM::reserveItem(" + xid + ", " + customerID + ", " + location + ")  failed--Could not reserve item");
-//                return false;
-//            }
-//        }
-//    }
+
     public boolean bundle(int xid, int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room) {
         //check flight availability
         boolean success = true;
