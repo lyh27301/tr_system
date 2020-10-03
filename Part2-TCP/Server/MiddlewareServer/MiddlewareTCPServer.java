@@ -245,7 +245,7 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
                         type = 'S';
                         int xid = Integer.parseInt(command.get(1));
                         int customerID = Integer.parseInt(command.get(2));
-                        return manager.queryCustomerInfo(xid, customerID);
+                        return middleware.queryCustomerInfo(xid, customerID);
                     }
 //                    case "summary": {
 //                        type = 'S';

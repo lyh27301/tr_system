@@ -46,6 +46,17 @@ public class MiddlewareResourceManager extends ResourceManager{
         return toBool(send(roomTCPClient,'B',command,true));
     }
 
+    public int newCustomer(int xid){
+        Trace.info("addCustomer - Redirect to Customer Resource Manager");
+        String command = String.format("AddCustomer,%d",xid);
+        return toInt(send(customerTCPClient,'I',command,true));
+    }
+    public boolean newCustomer(int xid, int customerID){
+        Trace.info("addCustomer - Redirect to Customer Resource Manager");
+        String command = String.format("AddCustomerID,%d,%d",xid, customerID);
+        return toBool(send(customerTCPClient,'B',command,true));
+    }
+
     public boolean deleteFlight(int id, int flightNum)
     {
         Trace.info("deleteFlight - Redirect to Flight Resource Manager");
@@ -66,58 +77,64 @@ public class MiddlewareResourceManager extends ResourceManager{
         String command = String.format("DeleteRooms,%d,%s",id,location);
         return toBool(send(roomTCPClient,'B',command,true));
     }
-
     public boolean deleteCustomer(int xid, int customerID)
     {
-        Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") called");
-        Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
-        if (customer == null)
-        {
-            Trace.warn("RM::deleteCustomer(" + xid + ", " + customerID + ") failed--customer doesn't exist");
-            return false;
-        }
-        else
-        {
-            synchronized (customer) {
-                // Increase the reserved numbers of all reservable items which the customer reserved.
-                RMHashMap reservations = customer.getReservations();
-                for (String reservedKey : reservations.keySet()) {
-                    String type = reservedKey.split("-")[0];
-                    ReservedItem reserveditem = customer.getReservedItem(reservedKey);
-                    String command = String.format("RemoveReservation,%d,%d,%s,%d", xid, customerID, reserveditem.getKey(), reserveditem.getCount());
-
-                    if (type.equals("flight")) {
-                        synchronized (flightTCPClient) {
-                            try {
-                                flightTCPClient.sendMessage(command);
-                            } catch (Exception e) {
-                            }
-                        }
-                    } else if (type.equals("car")) {
-                        synchronized (carTCPClient) {
-                            try {
-                                carTCPClient.sendMessage(command);
-                            } catch (Exception e) {
-                            }
-                        }
-                    } else if (type.equals("room")) {
-                        synchronized (roomTCPClient) {
-                            try {
-                                roomTCPClient.sendMessage(command);
-                            } catch (Exception e) {
-                            }
-                        }
-                    } else
-                        Trace.error("RM::deleteCustomer(" + xid + ", " + customerID + ") failed--reservedKey (" + reservedKey + ") wasn't of expected type.");
-                }
-                // Remove the customer from the storage
-                removeData(xid, customer.getKey());
-                Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") succeeded");
-            }
-            return true;
-        }
-
+        Trace.info("deleteCustomer - Redirect to Customer Resource Manager");
+        String command = String.format("DeleteCustomer,%d,%d",xid,customerID);
+        return toBool(send(customerTCPClient,'B',command,true));
     }
+//
+//    public boolean deleteCustomer(int xid, int customerID)
+//    {
+//        Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") called");
+//        Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
+//        if (customer == null)
+//        {
+//            Trace.warn("RM::deleteCustomer(" + xid + ", " + customerID + ") failed--customer doesn't exist");
+//            return false;
+//        }
+//        else
+//        {
+//            synchronized (customer) {
+//                // Increase the reserved numbers of all reservable items which the customer reserved.
+//                RMHashMap reservations = customer.getReservations();
+//                for (String reservedKey : reservations.keySet()) {
+//                    String type = reservedKey.split("-")[0];
+//                    ReservedItem reserveditem = customer.getReservedItem(reservedKey);
+//                    String command = String.format("RemoveReservation,%d,%d,%s,%d", xid, customerID, reserveditem.getKey(), reserveditem.getCount());
+//
+//                    if (type.equals("flight")) {
+//                        synchronized (flightTCPClient) {
+//                            try {
+//                                flightTCPClient.sendMessage(command);
+//                            } catch (Exception e) {
+//                            }
+//                        }
+//                    } else if (type.equals("car")) {
+//                        synchronized (carTCPClient) {
+//                            try {
+//                                carTCPClient.sendMessage(command);
+//                            } catch (Exception e) {
+//                            }
+//                        }
+//                    } else if (type.equals("room")) {
+//                        synchronized (roomTCPClient) {
+//                            try {
+//                                roomTCPClient.sendMessage(command);
+//                            } catch (Exception e) {
+//                            }
+//                        }
+//                    } else
+//                        Trace.error("RM::deleteCustomer(" + xid + ", " + customerID + ") failed--reservedKey (" + reservedKey + ") wasn't of expected type.");
+//                }
+//                // Remove the customer from the storage
+//                removeData(xid, customer.getKey());
+//                Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") succeeded");
+//            }
+//            return true;
+//        }
+//
+//    }
 
     public int queryFlight(int id, int flightNumber)
     {
@@ -138,6 +155,12 @@ public class MiddlewareResourceManager extends ResourceManager{
         Trace.info("queryRooms - Redirect to Room Resource Manager");
         String command = String.format("QueryRooms,%d,%s",id,location);
         return toInt(send(roomTCPClient,'I',command,false));
+    }
+    public String queryCustomerInfo(int xid, int customerID)
+    {
+        Trace.info("queryCustomer - Redirect to Customer Resource Manager");
+        String command = String.format("QueryRooms,%d,%d",xid,customerID);
+        return send(customerTCPClient,'S',command,false);
     }
 
     public int queryFlightPrice(int id, int flightNumber)
