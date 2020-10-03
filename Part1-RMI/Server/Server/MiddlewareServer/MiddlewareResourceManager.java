@@ -137,16 +137,35 @@ public class MiddlewareResourceManager implements IResourceManager {
 
     @Override
     public boolean bundle(int id, int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room) throws RemoteException {
-        flightNumbers.stream().forEach(fn -> {
-            try {
-                flightResourceManager.reserveFlight(id, customerID, (Integer.valueOf(fn)).intValue());
-                Trace.info("Flight number " + fn + " is booked with customer ID " + customerID);
-            } catch (RemoteException e) {
-                Trace.error("Fail to book flight number "+fn+" with customer ID "+ customerID);
+        ArrayList<String> reservedFlights = new ArrayList<String>();
+
+        boolean flightsBooked = true;
+        for (String fn: flightNumbers) {
+            if (!flightResourceManager.reserveFlight(id, customerID,(Integer.valueOf(fn)). intValue())){
+                flightsBooked = false;
+                break;
             }
-        });
-        if (car) carResourceManager.reserveCar(id,customerID, location);
-        if (room) roomResourceManager.reserveRoom(id,customerID, location);
+        }
+
+        boolean carBooked = carResourceManager.reserveCar(id,customerID, location);
+        boolean roomBooked = roomResourceManager.reserveRoom(id,customerID, location);
+
+        // if any not successful, add the booked item back
+        if (!carBooked || !roomBooked || !flightsBooked) {
+            if (carBooked) {
+                carResourceManager.addCars(id, location, 1, carResourceManager.queryCarsPrice(id, location));
+            }
+            if (roomBooked) {
+                roomResourceManager.addRooms(id, location, 1,roomResourceManager.queryRoomsPrice(id, location));
+            }
+            for (String fn: reservedFlights) {
+                int flightNumber = (Integer.valueOf(fn)). intValue();
+                flightResourceManager.addFlight(id, flightNumber, 1, flightResourceManager.queryFlightPrice(id, flightNumber));
+            }
+            Trace.error("Fail to book bundle with Customer ID" + customerID);
+            return false;
+        }
+
         return true;
     }
 
