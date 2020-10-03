@@ -23,4 +23,5 @@ public class MiddlewareResourceManager extends ResourceManager{
         customerTCPClient.stopTCPClient();
     }
     //TODO: distribute commands
+
 }

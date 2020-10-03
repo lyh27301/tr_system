@@ -140,6 +140,15 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
                 }
 
                 String result = middleware.execute(parsedCommand);
+                // in resourceManager :
+//                protected String execute(Vector<String> command) {
+//                    System.out.println(this.getName() + "-Execute: " + command);
+//                    return Execution.execute(this,command);
+//                }
+//                public String getName()
+//                {
+//                    return m_name;
+//                }
 
                 out.println(result);
                 in.close();
