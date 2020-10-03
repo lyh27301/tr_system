@@ -83,6 +83,10 @@ public class ResourceManager
 		{
 			value = curObj.getCount();
 		}
+		// if item doesn't exist
+		else{
+			return -1;
+		}
 		Trace.info("RM::queryNum(" + xid + ", " + key + ") returns count=" + value);
 		return value;
 	}    
