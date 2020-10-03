@@ -2,7 +2,6 @@ package Server.MiddlewareServer;
 import Server.Common.*;
 
 import java.io.IOException;
-import java.rmi.RemoteException;
 import java.util.Vector;
 
 public class MiddlewareResourceManager extends ResourceManager{
