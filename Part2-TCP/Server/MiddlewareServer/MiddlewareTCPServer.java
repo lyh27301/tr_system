@@ -162,6 +162,7 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
             }
         }
         public String execute(Vector<String> command){
+            char type = 'S';
             try {
                 switch (command.get(0).toLowerCase()) {
                     case "addflight": {
@@ -336,12 +337,15 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
                 System.err.println((char)27 + "[31;1mExecution exception: " + (char)27 + "[0m" + e.getLocalizedMessage());
             }
             if (type == 'S')
-                return defaultString;
+                return "";
             else if (type == 'B')
-                return defaultBool;
+                return "false";
             else
-                return defaultInt;
-
+                return "-1";
+        }
+        private static boolean toBoolean(String string)
+        {
+            return (string.equals("1") || string.equalsIgnoreCase("true")) ;
         }
 
     }
