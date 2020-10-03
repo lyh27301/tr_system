@@ -43,8 +43,7 @@ public abstract class Client
 				Command cmd = Command.fromString((String)arguments.elementAt(0));
 				try {
 					execute(cmd, arguments);
-				}
-				catch (IOException io) {
+				}catch (IOException io) {
 					connectServer();
 					execute(cmd, arguments);
 				}
