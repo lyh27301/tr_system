@@ -123,6 +123,8 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
             this.clientSocket = socket;
         }
 
+
+
         public void run() {
             try {
                 out = new PrintWriter(clientSocket.getOutputStream(), true);
@@ -139,7 +141,7 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
                     return;
                 }
 
-                String result = middleware.execute(parsedCommand);
+                String result = execute(parsedCommand);
                 // in resourceManager :
 //                protected String execute(Vector<String> command) {
 //                    System.out.println(this.getName() + "-Execute: " + command);
@@ -159,5 +161,188 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
                         (char) 27 + "[31;1mMiddleware exception: " + (char) 27 + "[0m" + e.getLocalizedMessage());
             }
         }
+        public String execute(Vector<String> command){
+            try {
+                switch (command.get(0).toLowerCase()) {
+                    case "addflight": {
+                        type = 'B';
+                        int xid = Integer.parseInt(command.get(1));
+                        int flightNumber = Integer.parseInt(command.get(2));
+                        int num = Integer.parseInt(command.get(3));
+                        int price = Integer.parseInt(command.get(4));
+                        return Boolean.toString(middleware.addFlight(xid, flightNumber, num, price));
+                    }
+                    case "addcars": {
+                        type = 'B';
+                        int xid = Integer.parseInt(command.get(1));
+                        String location = command.get(2);
+                        int num = Integer.parseInt(command.get(3));
+                        int price = Integer.parseInt(command.get(4));
+                        return Boolean.toString(middleware.addCars(xid, location, num, price));
+                    }
+                    case "addrooms": {
+                        type = 'B';
+                        int xid = Integer.parseInt(command.get(1));
+                        String location = command.get(2);
+                        int num = Integer.parseInt(command.get(3));
+                        int price = Integer.parseInt(command.get(4));
+                        return Boolean.toString(middleware.addRooms(xid, location, num, price));
+                    }
+                    case "addcustomer": {
+                        type = 'I';
+                        int xid = Integer.parseInt(command.get(1));
+                        return Integer.toString(middleware.newCustomer(xid));
+                    }
+                    case "addcustomerid": {
+                        type = 'B';
+                        int xid = Integer.parseInt(command.get(1));
+                        int id = Integer.parseInt(command.get(2));
+                        return Boolean.toString(middleware.newCustomer(xid, id));
+                    }
+                    case "deleteflight": {
+                        type = 'B';
+                        int xid = Integer.parseInt(command.get(1));
+                        int flightNum = Integer.parseInt(command.get(2));
+                        return Boolean.toString(middleware.deleteFlight(xid, flightNum));
+                    }
+                    case "deletecars": {
+                        type = 'B';
+                        int xid = Integer.parseInt(command.get(1));
+                        String location = command.get(2);
+                        return Boolean.toString(middleware.deleteCars(xid, location));
+                    }
+                    case "deleterooms": {
+                        type = 'B';
+                        int xid = Integer.parseInt(command.get(1));
+                        String location = command.get(2);
+                        return Boolean.toString(middleware.deleteRooms(xid, location));
+                    }
+                    case "deletecustomer": {
+                        type = 'B';
+                        int xid = Integer.parseInt(command.get(1));
+                        int customerID = Integer.parseInt(command.get(2));
+                        return Boolean.toString(middleware.deleteCustomer(xid, customerID));
+                    }
+                    case "queryflight": {
+                        type = 'I';
+                        int xid = Integer.parseInt(command.get(1));
+                        int flightNum = Integer.parseInt(command.get(2));
+                        return Integer.toString(middleware.queryFlight(xid, flightNum));
+                    }
+                    case "querycars": {
+                        type = 'I';
+                        int xid = Integer.parseInt(command.get(1));
+                        String location = command.get(2);
+                        return Integer.toString(middleware.queryCars(xid, location));
+                    }
+                    case "queryrooms": {
+                        type = 'I';
+                        int xid = Integer.parseInt(command.get(1));
+                        String location = command.get(2);
+                        return Integer.toString(middleware.queryRooms(xid, location));
+                    }
+                    case "querycustomer": {
+                        type = 'S';
+                        int xid = Integer.parseInt(command.get(1));
+                        int customerID = Integer.parseInt(command.get(2));
+                        return manager.queryCustomerInfo(xid, customerID);
+                    }
+//                    case "summary": {
+//                        type = 'S';
+//                        int xid = Integer.parseInt(command.get(1));
+//                        return manager.Summary(xid);
+//                    }
+//                    case "analytics": {
+//                        type = 'S';
+//                        int xid = Integer.parseInt(command.get(1));
+//                        int upperBound = Integer.parseInt(command.get(2));
+//                        return manager.Analytics(xid,upperBound);
+//                    }
+                    case "queryflightprice": {
+                        type = 'I';
+                        int xid = Integer.parseInt(command.get(1));
+                        int flightNum = Integer.parseInt(command.get(2));
+                        return Integer.toString(middleware.queryFlightPrice(xid, flightNum));
+                    }
+                    case "querycarsprice": {
+                        type = 'I';
+                        int xid = Integer.parseInt(command.get(1));
+                        String location = command.get(2);
+                        return Integer.toString(middleware.queryCarsPrice(xid, location));
+                    }
+                    case "queryroomsprice": {
+                        type = 'I';
+                        int xid = Integer.parseInt(command.get(1));
+                        String location = command.get(2);
+                        return Integer.toString(middleware.queryRoomsPrice(xid, location));
+                    }
+                    case "reserveflight": {
+                        type = 'B';
+                        int xid = Integer.parseInt(command.get(1));
+                        int customerID = Integer.parseInt(command.get(2));
+                        int flightNum = Integer.parseInt(command.get(3));
+                        return Boolean.toString(middleware.reserveFlight(xid, customerID, flightNum));
+                    }
+                    case "reservecar": {
+                        type = 'B';
+                        int xid = Integer.parseInt(command.get(1));
+                        int customerID = Integer.parseInt(command.get(2));
+                        String location = command.get(3);
+                        return Boolean.toString(middleware.reserveCar(xid, customerID, location));
+                    }
+                    case "reserveroom": {
+                        type = 'B';
+                        int xid = Integer.parseInt(command.get(1));
+                        int customerID = Integer.parseInt(command.get(2));
+                        String location = command.get(3);
+                        return Boolean.toString(middleware.reserveRoom(xid, customerID, location));
+                    }
+                    case "bundle": {
+                        type = 'B';
+                        int xid = Integer.parseInt(command.get(1));
+                        int customerID = Integer.parseInt(command.get(2));
+
+                        Vector<String> flightNumbers = new Vector<String>();
+                        for (int i = 0; i < command.size() - 6; ++i) {
+                            flightNumbers.add(command.elementAt(3 + i));
+                        }
+
+                        // Location
+                        String location = command.get(command.size() - 3);
+                        boolean car = toBoolean(command.get(command.size() - 2));
+                        boolean room = toBoolean(command.get(command.size() - 1));
+
+                        return Boolean.toString(middleware.bundle(xid, customerID, flightNumbers, location, car, room));
+                    }
+//                    case "removereservation": {
+//                        type = 'B';
+//                        int xid = Integer.parseInt(command.get(1));
+//                        int customerID = Integer.parseInt(command.get(2));
+//                        String reserveditemKey = command.get(3);
+//                        int reserveditemCount = Integer.parseInt(command.get(4));
+//
+//                        return Boolean.toString(middleware.removeReservation(xid, customerID, reserveditemKey, reserveditemCount));
+//                    }
+//                    case "itemsavailable": {
+//                        type = 'I';
+//                        int xid = Integer.parseInt(command.get(1));
+//                        String key = command.get(2);
+//                        int quantity = Integer.parseInt(command.get(3));
+//
+//                        return Integer.toString(middleware.itemsAvailable(xid, key, quantity));
+//                    }
+                }
+            } catch(Exception e) {
+                System.err.println((char)27 + "[31;1mExecution exception: " + (char)27 + "[0m" + e.getLocalizedMessage());
+            }
+            if (type == 'S')
+                return defaultString;
+            else if (type == 'B')
+                return defaultBool;
+            else
+                return defaultInt;
+
+        }
+
     }
 }
