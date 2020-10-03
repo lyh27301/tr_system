@@ -166,7 +166,6 @@ public class MiddlewareResourceManager implements IResourceManager {
             Trace.error("Fail to book bundle with Customer ID" + customerID);
             return false;
         }
-
         return true;
     }
 
