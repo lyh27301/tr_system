@@ -75,11 +75,8 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
         try {
             serverSocket = new ServerSocket(port);
             System.out.println("Listening on port: " + port);
-
-            while (true) {
+            while (true)
                 new ClientHandler(serverSocket.accept()).start();
-            }
-            
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -129,8 +126,6 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
         public ClientHandler(Socket socket) {
             this.clientSocket = socket;
         }
-
-
 
         public void run() {
             try {
