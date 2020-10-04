@@ -20,9 +20,6 @@ public class FlightTCPServer extends FlightResourceManager{
 
     private static int port = 6216;
 
-    public enum TYPE {
-        BOOL, INT, STR
-    }
 
     public static void main(String[] args) {
         String name = null;
@@ -127,8 +124,8 @@ public class FlightTCPServer extends FlightResourceManager{
                     return;
                 }
 
-                // String result = manager.execute(parsedCommand);
-                String result = execute(parsedCommand);
+                String result = manager.execute(parsedCommand);
+                //String result = execute(parsedCommand);
 
                 out.println(result);
                 in.close();
@@ -140,67 +137,6 @@ public class FlightTCPServer extends FlightResourceManager{
             }
         }
 
-        public String execute(Vector<String> command) {
-
-            ResourceManagerTCPServer.TYPE type = ResourceManagerTCPServer.TYPE.STR;
-
-            try {
-                switch (command.get(0).toLowerCase()) {
-                    case "addflight": {
-                        type = ResourceManagerTCPServer.TYPE.BOOL;
-                        int xid = Integer.parseInt(command.get(1));
-                        int flightNumber = Integer.parseInt(command.get(2));
-                        int num = Integer.parseInt(command.get(3));
-                        int price = Integer.parseInt(command.get(4));
-                        return Boolean.toString(manager.addFlight(xid, flightNumber, num, price));
-                    }
-                    case "deleteflight": {
-                        type = ResourceManagerTCPServer.TYPE.BOOL;
-                        int xid = Integer.parseInt(command.get(1));
-                        int flightNum = Integer.parseInt(command.get(2));
-                        return Boolean.toString(manager.deleteFlight(xid, flightNum));
-                    }
-                    case "queryflight": {
-                        type = ResourceManagerTCPServer.TYPE.INT;
-                        int xid = Integer.parseInt(command.get(1));
-                        int flightNum = Integer.parseInt(command.get(2));
-                        return Integer.toString(manager.queryFlight(xid, flightNum));
-                    }
-                    case "queryflightprice": {
-                        type = ResourceManagerTCPServer.TYPE.INT;
-                        int xid = Integer.parseInt(command.get(1));
-                        int flightNum = Integer.parseInt(command.get(2));
-                        return Integer.toString(manager.queryFlightPrice(xid, flightNum));
-                    }
-                    case "reserveflight": {
-                        type = ResourceManagerTCPServer.TYPE.BOOL;
-                        int xid = Integer.parseInt(command.get(1));
-                        int customerID = Integer.parseInt(command.get(2));
-                        int flightNum = Integer.parseInt(command.get(3));
-                        return Boolean.toString(manager.reserveFlight(xid, customerID, flightNum));
-                    }
-
-                }
-            } catch (Exception e) {
-                System.err.println(
-                        (char) 27 + "[31;1mExecution exception: " + (char) 27 + "[0m" + e.getLocalizedMessage());
-            }
-
-            switch (type) {
-                case BOOL: {
-                    return "false";
-                }
-                case INT: {
-                    return "-1";
-                }
-                case STR: {
-                    return "";
-                }
-                default: {
-                    return "";
-                }
-            }
-        }
     }
 
 

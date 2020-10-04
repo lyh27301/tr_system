@@ -58,7 +58,7 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
                     middleware.stop();
                 }
             });
-            System.out.println("Starting 'Middleware:" + s_serverPort + "'");
+            System.out.println("Starting 'Middleware:" + s_serverPort + ".");
             middleware.start(s_serverPort);
         } catch (Exception e) {
             System.err.println((char) 27 + "[31;1mMiddleware exception: " + (char) 27 + e.toString());
@@ -126,8 +126,6 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
         public ClientHandler(Socket socket) {
             this.clientSocket = socket;
         }
-
-
 
         public void run() {
             try {

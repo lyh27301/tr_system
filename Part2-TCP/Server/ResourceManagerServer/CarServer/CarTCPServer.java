@@ -21,9 +21,7 @@ public class CarTCPServer extends CarResourceManager {
 
     private static int port = 6316;
 
-    public enum TYPE {
-        BOOL, INT, STR
-    }
+
 
     public static void main(String[] args) {
         String name = null;
@@ -128,8 +126,8 @@ public class CarTCPServer extends CarResourceManager {
                     return;
                 }
 
-                // String result = manager.execute(parsedCommand);
-                String result = execute(parsedCommand);
+                String result = manager.execute(parsedCommand);
+                //String result = execute(parsedCommand);
 
                 out.println(result);
                 in.close();
@@ -141,74 +139,7 @@ public class CarTCPServer extends CarResourceManager {
             }
         }
 
-        public String execute(Vector<String> command) {
 
-            ResourceManagerTCPServer.TYPE type = ResourceManagerTCPServer.TYPE.STR;
-
-            try {
-                switch (command.get(0).toLowerCase()) {
-
-                    case "addcars": {
-                        type = ResourceManagerTCPServer.TYPE.BOOL;
-                        int xid = Integer.parseInt(command.get(1));
-                        String location = command.get(2);
-                        int num = Integer.parseInt(command.get(3));
-                        int price = Integer.parseInt(command.get(4));
-                        return Boolean.toString(manager.addCars(xid, location, num, price));
-                    }
-
-
-                    case "deletecars": {
-                        type = ResourceManagerTCPServer.TYPE.BOOL;
-                        int xid = Integer.parseInt(command.get(1));
-                        String location = command.get(2);
-                        return Boolean.toString(manager.deleteCars(xid, location));
-                    }
-
-                    case "querycars": {
-                        type = ResourceManagerTCPServer.TYPE.INT;
-                        int xid = Integer.parseInt(command.get(1));
-                        String location = command.get(2);
-                        return Integer.toString(manager.queryCars(xid, location));
-                    }
-
-                    case "querycarsprice": {
-                        type = ResourceManagerTCPServer.TYPE.INT;
-                        int xid = Integer.parseInt(command.get(1));
-                        String location = command.get(2);
-                        return Integer.toString(manager.queryCarsPrice(xid, location));
-                    }
-
-                    case "reservecar": {
-                        type = ResourceManagerTCPServer.TYPE.BOOL;
-                        int xid = Integer.parseInt(command.get(1));
-                        int customerID = Integer.parseInt(command.get(2));
-                        String location = command.get(3);
-                        return Boolean.toString(manager.reserveCar(xid, customerID, location));
-                    }
-
-
-                }
-            } catch (Exception e) {
-                System.err.println(
-                        (char) 27 + "[31;1mExecution exception: " + (char) 27 + "[0m" + e.getLocalizedMessage());
-            }
-
-            switch (type) {
-                case BOOL: {
-                    return "false";
-                }
-                case INT: {
-                    return "-1";
-                }
-                case STR: {
-                    return "";
-                }
-                default: {
-                    return "";
-                }
-            }
-        }
     }
 
 

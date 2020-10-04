@@ -4,10 +4,65 @@ import Server.Common.*;
 
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.Vector;
 
 public class CustomerResourceManager extends BasicResourceManager {
     public CustomerResourceManager(String p_name) {
         super(p_name);
+    }
+    public enum TYPE {
+        BOOL, INT, STR
+    }
+    public String execute(Vector<String> command) {
+
+        TYPE type = TYPE.STR;
+
+        try {
+            switch (command.get(0).toLowerCase()) {
+
+                case "addcustomer": {
+                    type = TYPE.INT;
+                    int xid = Integer.parseInt(command.get(1));
+                    return Integer.toString(newCustomer(xid));
+                }
+                case "addcustomerid": {
+                    type = TYPE.BOOL;
+                    int xid = Integer.parseInt(command.get(1));
+                    int id = Integer.parseInt(command.get(2));
+                    return Boolean.toString(newCustomer(xid, id));
+                }
+
+                case "deletecustomer": {
+                    type = TYPE.BOOL;
+                    int xid = Integer.parseInt(command.get(1));
+                    int customerID = Integer.parseInt(command.get(2));
+                    return Boolean.toString(deleteCustomer(xid, customerID));
+                }
+
+                case "querycustomer": {
+                    type = TYPE.STR;
+                    int xid = Integer.parseInt(command.get(1));
+                    int customerID = Integer.parseInt(command.get(2));
+                    return queryCustomerInfo(xid, customerID);
+                }
+
+            }
+        } catch (Exception e) {
+            System.err.println(
+                    (char) 27 + "[31;1mExecution exception: " + (char) 27 + "[0m" + e.getLocalizedMessage());
+        }
+
+        switch (type) {
+            case BOOL: {
+                return "false";
+            }
+            case INT: {
+                return "-1";
+            }
+            default: {
+                return "";
+            }
+        }
     }
 
     public String queryCustomerInfo(int xid, int customerID) throws IOException {

@@ -5,12 +5,79 @@ import Server.Common.Room;
 import Server.Common.Trace;
 
 import java.io.IOException;
+import java.util.Vector;
 
 public class RoomResourceManager extends BasicResourceManager {
     public RoomResourceManager(String p_name) {
         super(p_name);
     }
+    public enum TYPE {
+        BOOL, INT, STR
+    }
+    public String execute(Vector<String> command) {
 
+        TYPE type = TYPE.STR;
+
+        try {
+            switch (command.get(0).toLowerCase()) {
+
+
+                case "addrooms": {
+                    type = TYPE.BOOL;
+                    int xid = Integer.parseInt(command.get(1));
+                    String location = command.get(2);
+                    int num = Integer.parseInt(command.get(3));
+                    int price = Integer.parseInt(command.get(4));
+                    return Boolean.toString(addRooms(xid, location, num, price));
+                }
+
+                case "deleterooms": {
+                    type = TYPE.BOOL;
+                    int xid = Integer.parseInt(command.get(1));
+                    String location = command.get(2);
+                    return Boolean.toString(deleteRooms(xid, location));
+                }
+
+                case "queryrooms": {
+                    type = TYPE.INT;
+                    int xid = Integer.parseInt(command.get(1));
+                    String location = command.get(2);
+                    return Integer.toString(queryRooms(xid, location));
+                }
+
+                case "queryroomsprice": {
+                    type = TYPE.INT;
+                    int xid = Integer.parseInt(command.get(1));
+                    String location = command.get(2);
+                    return Integer.toString(queryRoomsPrice(xid, location));
+                }
+
+                case "reserveroom": {
+                    type = TYPE.BOOL;
+                    int xid = Integer.parseInt(command.get(1));
+                    int customerID = Integer.parseInt(command.get(2));
+                    String location = command.get(3);
+                    return Boolean.toString(reserveRoom(xid, customerID, location));
+                }
+
+            }
+        } catch (Exception e) {
+            System.err.println(
+                    (char) 27 + "[31;1mExecution exception: " + (char) 27 + "[0m" + e.getLocalizedMessage());
+        }
+
+        switch (type) {
+            case BOOL: {
+                return "false";
+            }
+            case INT: {
+                return "-1";
+            }
+            default: {
+                return "";
+            }
+        }
+    }
     // Create a new room location or add rooms to an existing location
     // NOTE: if price <= 0 and the room location already exists, it maintains its current price
     public boolean addRooms(int xid, String location, int count, int price) throws IOException {

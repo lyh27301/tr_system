@@ -21,10 +21,6 @@ public class RoomTCPServer extends RoomResourceManager{
 
     private static int port = 6416;
 
-    public enum TYPE {
-        BOOL, INT, STR
-    }
-
     public static void main(String[] args) {
         String name = null;
 
@@ -127,8 +123,8 @@ public class RoomTCPServer extends RoomResourceManager{
                     return;
                 }
 
-                // String result = manager.execute(parsedCommand);
-                String result = execute(parsedCommand);
+                String result = manager.execute(parsedCommand);
+                //String result = execute(parsedCommand);
 
                 out.println(result);
                 in.close();
@@ -140,73 +136,6 @@ public class RoomTCPServer extends RoomResourceManager{
             }
         }
 
-        public String execute(Vector<String> command) {
-
-            ResourceManagerTCPServer.TYPE type = ResourceManagerTCPServer.TYPE.STR;
-
-            try {
-                switch (command.get(0).toLowerCase()) {
-
-
-                    case "addrooms": {
-                        type = ResourceManagerTCPServer.TYPE.BOOL;
-                        int xid = Integer.parseInt(command.get(1));
-                        String location = command.get(2);
-                        int num = Integer.parseInt(command.get(3));
-                        int price = Integer.parseInt(command.get(4));
-                        return Boolean.toString(manager.addRooms(xid, location, num, price));
-                    }
-
-                    case "deleterooms": {
-                        type = ResourceManagerTCPServer.TYPE.BOOL;
-                        int xid = Integer.parseInt(command.get(1));
-                        String location = command.get(2);
-                        return Boolean.toString(manager.deleteRooms(xid, location));
-                    }
-
-                    case "queryrooms": {
-                        type = ResourceManagerTCPServer.TYPE.INT;
-                        int xid = Integer.parseInt(command.get(1));
-                        String location = command.get(2);
-                        return Integer.toString(manager.queryRooms(xid, location));
-                    }
-
-                    case "queryroomsprice": {
-                        type = ResourceManagerTCPServer.TYPE.INT;
-                        int xid = Integer.parseInt(command.get(1));
-                        String location = command.get(2);
-                        return Integer.toString(manager.queryRoomsPrice(xid, location));
-                    }
-
-                    case "reserveroom": {
-                        type = ResourceManagerTCPServer.TYPE.BOOL;
-                        int xid = Integer.parseInt(command.get(1));
-                        int customerID = Integer.parseInt(command.get(2));
-                        String location = command.get(3);
-                        return Boolean.toString(manager.reserveRoom(xid, customerID, location));
-                    }
-
-                }
-            } catch (Exception e) {
-                System.err.println(
-                        (char) 27 + "[31;1mExecution exception: " + (char) 27 + "[0m" + e.getLocalizedMessage());
-            }
-
-            switch (type) {
-                case BOOL: {
-                    return "false";
-                }
-                case INT: {
-                    return "-1";
-                }
-                case STR: {
-                    return "";
-                }
-                default: {
-                    return "";
-                }
-            }
-        }
     }
 
 
