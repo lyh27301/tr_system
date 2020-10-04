@@ -2,21 +2,23 @@ package Server.MiddlewareServer;
 import Server.Common.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Vector;
 
-public class MiddlewareResourceManager extends ResourceManager{
+public class MiddlewareResourceManager {
     protected ResourceManagerTCPClient flightTCPClient = null;
     protected ResourceManagerTCPClient carTCPClient = null;
     protected ResourceManagerTCPClient customerTCPClient = null;
     protected ResourceManagerTCPClient roomTCPClient = null;
-
-    public enum TYPE {
-		BOOL, INT, STR
-	}
+    protected String m_name = "";
+//
+//    public enum TYPE {
+//		BOOL, INT, STR
+//	}
 
     public MiddlewareResourceManager(String name, String flightHost, int flightPort, String carHost, int carPort, String roomHost, int roomPort, String customerHost, int customerPort)
     {
-        super(name);
+        m_name = name;
         flightTCPClient = new ResourceManagerTCPClient(flightHost,flightPort);
         carTCPClient = new ResourceManagerTCPClient(carHost,carPort);
         roomTCPClient = new ResourceManagerTCPClient(roomHost,roomPort);
@@ -258,50 +260,85 @@ public class MiddlewareResourceManager extends ResourceManager{
             return false;
         }
     }
-
+    
     public boolean bundle(int xid, int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room) {
-        //check flight availability
-        boolean success = true;
-        for(String flight: flightNumbers){
-            if(queryFlight(xid,toInt(flight))<0) {
-                Trace.warn("RM::reserveFlight(" + xid + ", " + customerID + ", " + flight + ", " + location + ") failed--flight doesn't exist");
-                success = false;
-            }
-            else if(queryFlight(xid,toInt(flight))==0){
-                Trace.warn("RM::reserveFlight(" + xid + ", " + customerID + ", " + flight + ", " + location + ") failed--No more seats");
-                success = false;
+        ArrayList<String> reservedFlights = new ArrayList<String>();
+
+        boolean flightsBooked = true;
+        for (String fn: flightNumbers) {
+            if (!reserveFlight(xid,customerID,toInt(fn))){
+                flightsBooked = false;
+                break;
             }
         }
+        boolean carBooked = true;
+        boolean roomBooked = true;
         if(car){
-            if (queryCars(xid,location)<0){
-                Trace.warn("RM::reserveCar(" + xid + ", " + customerID + ", " + location + ") failed--car doesn't exist");
-                success = false;
-            }
-            else if(queryCars(xid,location)==0){
-                Trace.warn("RM::reserveCar(" + xid + ", " + customerID + ", " + location + ") failed--No more cars");
-                success = false;
-            }
+            carBooked = carResourceManager.reserveCar(xid,customerID, location);
         }
-        if (room){
-            if (queryRooms(xid,location)<0){
-                Trace.warn("RM::reserveRoom(" + xid + ", " + customerID + ", " + location + ") failed--room doesn't exist");
-                success = false;
-            }
-            else if(queryRooms(xid,location)==0){
-                Trace.warn("RM::reserveRoom(" + xid + ", " + customerID + ", " + location + ") failed--No more rooms");
-                success = false;
-            }
+        if(room){
+            roomBooked = roomResourceManager.reserveRoom(xid,customerID, location);
         }
-        if (!success){
+
+
+        // if any not successful, add the booked item back
+        if (!carBooked || !roomBooked || !flightsBooked) {
+            if (carBooked) {
+                carResourceManager.addCars(xid, location, 1, carResourceManager.queryCarsPrice(id, location));
+            }
+            if (roomBooked) {
+                roomResourceManager.addRooms(xid, location, 1,roomResourceManager.queryRoomsPrice(id, location));
+            }
+            for (String fn: reservedFlights) {
+                int flightNumber = (Integer.valueOf(fn)). intValue();
+                flightTCPClient.addFlight(xid, flightNumber, 1, flightTCPClient.queryFlightPrice(id, flightNumber));
+            }
+            Trace.error("Fail to book bundle with Customer ID" + customerID);
             return false;
         }
-        //start reservation
-        for(String flight: flightNumbers){
-            reserveFlight(xid,customerID,toInt(flight));
-        }
-        reserveCar(xid,customerID,location);
-        reserveRoom(xid,customerID,location);
         return true;
+        //        //check flight availability
+//        boolean success = true;
+//        for(String flight: flightNumbers){
+//            if(queryFlight(xid,toInt(flight))<0) {
+//                Trace.warn("RM::reserveFlight(" + xid + ", " + customerID + ", " + flight + ", " + location + ") failed--flight doesn't exist");
+//                success = false;
+//            }
+//            else if(queryFlight(xid,toInt(flight))==0){
+//                Trace.warn("RM::reserveFlight(" + xid + ", " + customerID + ", " + flight + ", " + location + ") failed--No more seats");
+//                success = false;
+//            }
+//        }
+//        if(car){
+//            if (queryCars(xid,location)<0){
+//                Trace.warn("RM::reserveCar(" + xid + ", " + customerID + ", " + location + ") failed--car doesn't exist");
+//                success = false;
+//            }
+//            else if(queryCars(xid,location)==0){
+//                Trace.warn("RM::reserveCar(" + xid + ", " + customerID + ", " + location + ") failed--No more cars");
+//                success = false;
+//            }
+//        }
+//        if (room){
+//            if (queryRooms(xid,location)<0){
+//                Trace.warn("RM::reserveRoom(" + xid + ", " + customerID + ", " + location + ") failed--room doesn't exist");
+//                success = false;
+//            }
+//            else if(queryRooms(xid,location)==0){
+//                Trace.warn("RM::reserveRoom(" + xid + ", " + customerID + ", " + location + ") failed--No more rooms");
+//                success = false;
+//            }
+//        }
+//        if (!success){
+//            return false;
+//        }
+//        //start reservation
+//        for(String flight: flightNumbers){
+//            reserveFlight(xid,customerID,toInt(flight));
+//        }
+//        reserveCar(xid,customerID,location);
+//        reserveRoom(xid,customerID,location);
+//        return true;
     }
 
 //    private String send(ResourceManagerTCPClient comm, TYPE returnType, String command, boolean sync) {
