@@ -7,7 +7,7 @@ import Server.Common.Trace;
 import java.io.IOException;
 
 public class CarResourceManager extends BasicResourceManager {
-    public CarResourceManager()
+    public CarResourceManager(String p_name)
     {
         super("CarResourceManager");
     }

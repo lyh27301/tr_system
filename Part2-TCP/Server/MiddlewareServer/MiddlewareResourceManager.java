@@ -274,24 +274,23 @@ public class MiddlewareResourceManager {
         boolean carBooked = true;
         boolean roomBooked = true;
         if(car){
-            carBooked = carResourceManager.reserveCar(xid,customerID, location);
+            carBooked = reserveCar(xid,customerID,location);
         }
         if(room){
-            roomBooked = roomResourceManager.reserveRoom(xid,customerID, location);
+            roomBooked = reserveRoom(xid,customerID,location);
         }
-
 
         // if any not successful, add the booked item back
         if (!carBooked || !roomBooked || !flightsBooked) {
             if (carBooked) {
-                carResourceManager.addCars(xid, location, 1, carResourceManager.queryCarsPrice(id, location));
+               addCars(xid, location, 1, queryCarsPrice(xid, location));
             }
             if (roomBooked) {
-                roomResourceManager.addRooms(xid, location, 1,roomResourceManager.queryRoomsPrice(id, location));
+                addRooms(xid, location, 1,queryRoomsPrice(xid, location));
             }
             for (String fn: reservedFlights) {
                 int flightNumber = (Integer.valueOf(fn)). intValue();
-                flightTCPClient.addFlight(xid, flightNumber, 1, flightTCPClient.queryFlightPrice(id, flightNumber));
+                addFlight(xid, flightNumber, 1, queryFlightPrice(xid, flightNumber));
             }
             Trace.error("Fail to book bundle with Customer ID" + customerID);
             return false;
