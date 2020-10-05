@@ -31,7 +31,7 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
     public static void main(String[] args) {
         try {
 
-            if (args.length > 2) {
+            if (args.length > 3) {
                 String[] flightInfo = args[0].split(",");
                 String[] carInfo = args[1].split(",");
                 String[] roomInfo = args[2].split(",");
@@ -58,7 +58,7 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
                     middleware.stop();
                 }
             });
-            System.out.println("Starting 'Middleware:" + s_serverPort + "'");
+            System.out.println("Starting 'Middleware:" + s_serverPort + ".");
             middleware.start(s_serverPort);
         } catch (Exception e) {
             System.err.println((char) 27 + "[31;1mMiddleware exception: " + (char) 27 + e.toString());
@@ -127,8 +127,6 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
             this.clientSocket = socket;
         }
 
-
-
         public void run() {
             try {
                 out = new PrintWriter(clientSocket.getOutputStream(), true);
@@ -146,16 +144,6 @@ public class MiddlewareTCPServer extends MiddlewareResourceManager {
                 }
 
                 String result = execute(parsedCommand);
-                // in resourceManager :
-//                protected String execute(Vector<String> command) {
-//                    System.out.println(this.getName() + "-Execute: " + command);
-//                    return Execution.execute(this,command);
-//                }
-//                public String getName()
-//                {
-//                    return m_name;
-//                }
-
                 out.println(result);
                 in.close();
                 out.close();
