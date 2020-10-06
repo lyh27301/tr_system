@@ -48,6 +48,9 @@ public class FlightResourceManager extends BasicResourceManager {
                 response = "false";
             }
         }
+        else if((parsed[0].equals("CancelFlight"))){
+            response = String.valueOf(cancelFlight(Integer.valueOf(parsed[1]),Integer.valueOf(parsed[2]),parsed[3],Integer.valueOf(parsed[4])));
+        }
         return response;
     }
 
@@ -77,6 +80,12 @@ public class FlightResourceManager extends BasicResourceManager {
         }
         return true;
     }
+
+    protected boolean cancelFlight(int xid, int customerID, String key, int count){
+        cancelReservation(xid,customerID,key,count);
+        return true;
+    }
+
 
     // Deletes flight
     public boolean deleteFlight(int xid, int flightNum)

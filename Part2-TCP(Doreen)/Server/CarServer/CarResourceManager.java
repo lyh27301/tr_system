@@ -49,7 +49,14 @@ public class CarResourceManager extends BasicResourceManager {
 				response = "false";
 			}
 		}
+		else if((parsed[0].equals("CancelCar"))){
+			response = String.valueOf(cancelCar(Integer.valueOf(parsed[1]),Integer.valueOf(parsed[2]),parsed[3],Integer.valueOf(parsed[4])));
+		}
 		return response;
+	}
+	protected boolean cancelCar(int xid, int customerID, String key, int count){
+		cancelReservation(xid,customerID,key,count);
+		return true;
 	}
 
 	// Create a new car location or add cars to an existing location
