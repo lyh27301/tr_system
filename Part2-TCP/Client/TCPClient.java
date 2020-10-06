@@ -47,6 +47,7 @@ public class TCPClient extends Client {
 
     public TCPClient() {
         super();
+        connectServer();
     }
 
     public void connectServer() {

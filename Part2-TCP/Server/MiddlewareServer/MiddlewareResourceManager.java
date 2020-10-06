@@ -228,6 +228,10 @@ public class MiddlewareResourceManager {
         try {
             Trace.info("reserveFlight - Redirect to Flight Resource Manager");
             String command = String.format("ReserveFlight, %d, %d, %d", xid, customerID, flightNumber);
+            if(queryCustomerInfo(xid,customerID).equals("")){
+                Trace.warn("RM::reserveFlight(" + xid + ", " + customerID + ", " + Flight.getKey(flightNumber) + ", " + flightNumber+ ")  failed--customer doesn't exist");
+                return false;
+            }
             //return toBool(send(flightTCPClient,TYPE.BOOL,command,true));
             return toBool(flightTCPClient.sendMessage(command));
         }catch(Exception e) {
