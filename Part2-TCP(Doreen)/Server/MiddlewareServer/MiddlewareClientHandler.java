@@ -122,22 +122,18 @@ public class MiddlewareClientHandler extends Thread {
             }
         }
         try {
-            //carSocket.close();
             carInputStream.close();
             carOutputStream.close();
             Trace.info("Car server connection is closed in a thread.");
 
-            //flightSocket.close();
             flightInputStream.close();
             flightOutputStream.close();
             Trace.info("Flight server connection is closed in a thread.");
 
-            //roomSocket.close();
             roomInputStream.close();
             roomOutputStream.close();
             Trace.info("Room server connection is closed in a thread.");
 
-            //customerSocket.close();
             customerInputStream.close();
             customerOutputStream.close();
             Trace.info("Customer server connection is closed in a thread.");
@@ -153,7 +149,7 @@ public class MiddlewareClientHandler extends Thread {
 
     }
 
-    public String executeRequestInResourceManager (ServerType serverType, String message) throws IOException {
+    private String executeRequestInResourceManager (ServerType serverType, String message) throws IOException {
         String response ="";
         switch (serverType) {
             case CAR:
@@ -177,32 +173,6 @@ public class MiddlewareClientHandler extends Thread {
     }
 
 
-
-    public void executeRequestAndSendBackToClient(ServerType serverType, String message) throws IOException {
-        switch (serverType) {
-            case CAR:
-                this.carOutputStream.writeUTF(message);
-                String receivedFromCarResourceManager = carInputStream.readUTF();
-                clientOutputStream.writeUTF(receivedFromCarResourceManager);
-                break;
-            case FLIGHT:
-                this.flightOutputStream.writeUTF(message);
-                String receivedFromFlightResourceManager = flightInputStream.readUTF();
-                clientOutputStream.writeUTF(receivedFromFlightResourceManager);
-                break;
-            case ROOM:
-                this.roomOutputStream.writeUTF(message);
-                String receivedFromRoomResourceManager = roomInputStream.readUTF();
-                clientOutputStream.writeUTF(receivedFromRoomResourceManager);
-                break;
-            case CUSTOMER:
-                this.customerOutputStream.writeUTF(message);
-                String receivedFromCustomerResourceManager = customerInputStream.readUTF();
-                clientOutputStream.writeUTF(receivedFromCustomerResourceManager);
-                break;
-        }
-
-    }
 
     public void executeBundleSendBackToClient(String receivedFromClient) {
         //ToDo: implement bundle
