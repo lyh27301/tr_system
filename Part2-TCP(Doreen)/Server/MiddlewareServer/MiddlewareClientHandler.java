@@ -1,5 +1,7 @@
 package Server.MiddlewareServer;
 
+import Server.Common.Car;
+import Server.Common.Flight;
 import Server.Common.Room;
 import Server.Common.Trace;
 
@@ -117,7 +119,7 @@ public class MiddlewareClientHandler extends Thread {
                         if(response.equals(false)){
                             clientOutputStream.writeUTF("Room could not be reserved");
                         }else{
-                            String request = "ReserveItem,"+parsed[1]+","+parsed[2]+","+parsed[3]+","+parsed[3]+","+Integer.valueOf(response);
+                            String request = "ReserveItem,"+parsed[1]+","+parsed[2]+","+Room.getKey(parsed[3])+","+parsed[3]+","+Integer.valueOf(response);
                             response = executeRequestInResourceManager(ServerType.CUSTOMER, request);
                             clientOutputStream.writeUTF(response);
                         }
@@ -132,7 +134,7 @@ public class MiddlewareClientHandler extends Thread {
                         if(response.equals(false)){
                             clientOutputStream.writeUTF("Flight could not be reserved");
                         }else{
-                            String request = "ReserveItem,"+parsed[1]+","+parsed[2]+","+parsed[3]+","+parsed[3]+","+Integer.valueOf(response);
+                            String request = "ReserveItem,"+parsed[1]+","+parsed[2]+","+ Flight.getKey(Integer.parseInt(parsed[3]))+","+parsed[3]+","+Integer.valueOf(response);
                             response = executeRequestInResourceManager(ServerType.CUSTOMER, request);
                             clientOutputStream.writeUTF(response);
                         }
@@ -146,7 +148,7 @@ public class MiddlewareClientHandler extends Thread {
                         if(response.equals(false)){
                             clientOutputStream.writeUTF("Car could not be reserved");
                         }else{
-                            String request = "ReserveItem,"+parsed[1]+","+parsed[2]+","+parsed[3]+","+parsed[3]+","+Integer.valueOf(response);
+                            String request = "ReserveItem,"+parsed[1]+","+parsed[2]+","+ Car.getKey(parsed[3])+","+parsed[3]+","+Integer.valueOf(response);
                             response = executeRequestInResourceManager(ServerType.CUSTOMER, request);
                             clientOutputStream.writeUTF(response);
                         }
