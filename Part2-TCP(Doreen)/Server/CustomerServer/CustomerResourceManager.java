@@ -38,6 +38,10 @@ public class CustomerResourceManager extends BasicResourceManager {
             }else{
                 response = "Fail to delete customer. Customer does not exist.";
             }
+        }else if(parsed[0].equals("ReserveItem")){
+            if(reserveItem(stringToInt(parsed[1]),stringToInt(parsed[2]),parsed[3],parsed[4],stringToInt(parsed[5]))){
+                response = "Reserved successfully";
+            }
         }
         return response;
     }
@@ -104,7 +108,6 @@ public class CustomerResourceManager extends BasicResourceManager {
         }
     }
 
-
     public String queryCustomerInfo(int xid, int customerID)
     {
         Trace.info("RM::queryCustomerInfo(" + xid + ", " + customerID + ") called");
@@ -113,7 +116,7 @@ public class CustomerResourceManager extends BasicResourceManager {
         {
             Trace.warn("RM::queryCustomerInfo(" + xid + ", " + customerID + ") failed--customer doesn't exist");
             // NOTE: don't change this--WC counts on this value indicating a customer does not exist...
-            return "Query customer info(" + xid + ", " + customerID + ") failed--customer doesn't exist";
+            return "";
         }
         else
         {
@@ -123,7 +126,20 @@ public class CustomerResourceManager extends BasicResourceManager {
         }
     }
 
-    
+    protected boolean reserveItem(int xid, int customerID, String key, String location, int price) {
+        Trace.info("RM::reserveItem(" + xid + ", customer=" + customerID + ", " + key + ", " + location + ") called" );
+        // Read customer object if it exists (and read lock it)
+        Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
+//        if (customer == null)
+//        {
+//            Trace.warn("RM::reserveItem(" + xid + ", " + customerID + ", " + key + ", " + location + ")  failed--customer doesn't exist");
+//            return false;
+//        }
+        customer.reserve(key, location, price);
+        writeData(xid, customer.getKey(), customer);
+
+        return true;
+    }
 
 }
  

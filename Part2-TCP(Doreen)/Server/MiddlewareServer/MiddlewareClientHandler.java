@@ -1,5 +1,6 @@
 package Server.MiddlewareServer;
 
+import Server.Common.Room;
 import Server.Common.Trace;
 
 import java.io.DataInputStream;
@@ -91,17 +92,17 @@ public class MiddlewareClientHandler extends Thread {
 
                 //Choose the responsible service
                 else if (command.equals("AddCars") || command.equals("DeleteCars") || command.equals("QueryCars")
-                        || command.equals("QueryCarsPrice") || command.equals("ReserveCar")) {
+                        || command.equals("QueryCarsPrice")) {
                     String response = executeRequestInResourceManager(ServerType.CAR, receivedFromClient);
                     clientOutputStream.writeUTF(response);
                 }
                 else if (command.equals("AddFlight") || command.equals("DeleteFlights") || command.equals("QueryFlight")
-                        || command.equals("QueryFlightPrice") || command.equals("ReserveFlight")) {
+                        || command.equals("QueryFlightPrice") ) {
                     String response = executeRequestInResourceManager(ServerType.FLIGHT, receivedFromClient);
                     clientOutputStream.writeUTF(response);
                 }
                 else if (command.equals("AddRooms") || command.equals("DeleteRooms") || command.equals("QueryRooms")
-                        || command.equals("QueryRoomsPrice") || command.equals("ReserveRoom")) {
+                        || command.equals("QueryRoomsPrice") ) {
                     String response = executeRequestInResourceManager(ServerType.ROOM, receivedFromClient);
                     clientOutputStream.writeUTF(response);
                 }
@@ -109,6 +110,50 @@ public class MiddlewareClientHandler extends Thread {
                         || command.equals("QueryCustomer")) {
                     String response = executeRequestInResourceManager(ServerType.CUSTOMER, receivedFromClient);
                     clientOutputStream.writeUTF(response);
+                }
+                else if(command.equals("ReserveRoom")){
+                    if(checkCustomerExists(Integer.parseInt(parsed[1]),Integer.parseInt(parsed[2]))){
+                        String response = executeRequestInResourceManager(ServerType.ROOM, receivedFromClient);
+                        if(response.equals(false)){
+                            clientOutputStream.writeUTF("Room could not be reserved");
+                        }else{
+                            String request = "ReserveItem,"+parsed[1]+","+parsed[2]+","+parsed[3]+","+parsed[3]+","+Integer.valueOf(response);
+                            response = executeRequestInResourceManager(ServerType.CUSTOMER, request);
+                            clientOutputStream.writeUTF(response);
+                        }
+                    }else{
+                        clientOutputStream.writeUTF("Failed-Customer does not exists");
+                    }
+
+                }
+                else if (command.equals("ReserveFlight")){
+                    if(checkCustomerExists(Integer.parseInt(parsed[1]),Integer.parseInt(parsed[2]))){
+                        String response = executeRequestInResourceManager(ServerType.FLIGHT, receivedFromClient);
+                        if(response.equals(false)){
+                            clientOutputStream.writeUTF("Flight could not be reserved");
+                        }else{
+                            String request = "ReserveItem,"+parsed[1]+","+parsed[2]+","+parsed[3]+","+parsed[3]+","+Integer.valueOf(response);
+                            response = executeRequestInResourceManager(ServerType.CUSTOMER, request);
+                            clientOutputStream.writeUTF(response);
+                        }
+                    }else{
+                        clientOutputStream.writeUTF("Failed-Customer does not exists");
+                    }
+                }
+                else if( command.equals("ReserveCar")){
+                    if(checkCustomerExists(Integer.parseInt(parsed[1]),Integer.parseInt(parsed[2]))){
+                        String response = executeRequestInResourceManager(ServerType.CAR, receivedFromClient);
+                        if(response.equals(false)){
+                            clientOutputStream.writeUTF("Car could not be reserved");
+                        }else{
+                            String request = "ReserveItem,"+parsed[1]+","+parsed[2]+","+parsed[3]+","+parsed[3]+","+Integer.valueOf(response);
+                            response = executeRequestInResourceManager(ServerType.CUSTOMER, request);
+                            clientOutputStream.writeUTF(response);
+                        }
+                    }else{
+                        clientOutputStream.writeUTF("Failed-Customer does not exists");
+                    }
+
                 }
                 else if (command.equals("Bundle")) {
                     //executeBundleSendBackToClient(receivedFromClient);
@@ -147,6 +192,14 @@ public class MiddlewareClientHandler extends Thread {
             e.printStackTrace();
         }
 
+    }
+    private boolean checkCustomerExists(int xid, int customerID) throws IOException {
+        String checkCustomer = String.format("QueryCustomer,%d,%d",xid,customerID);
+        String response = executeRequestInResourceManager(ServerType.CUSTOMER, checkCustomer);
+        if(response.equals("")){
+            return false;
+        }
+        return true;
     }
 
     private String executeRequestInResourceManager (ServerType serverType, String message) throws IOException {

@@ -39,13 +39,13 @@ public class FlightResourceManager extends BasicResourceManager {
 
         }else if(parsed[0].equals("QueryFlightPrice")){
             int price = queryFlightPrice(stringToInt(parsed[1]), stringToInt(parsed[2]));
-            response = "Price of flights at this location: " + price;
+            response = "Price of this flight: " + price;
 
         }else if(parsed[0].equals("ReserveFlight")){
             if (reserveFlight(stringToInt(parsed[1]), stringToInt(parsed[2]), stringToInt((parsed[3])))) {
-                response = "Flight Reserved";
+                response = String.valueOf(queryFlightPrice(Integer.valueOf(parsed[1]),Integer.valueOf(parsed[3])));
             } else {
-                response = "Flight could not be reserved";
+                response = "false";
             }
         }
         return response;

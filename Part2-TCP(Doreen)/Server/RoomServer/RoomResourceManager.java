@@ -43,9 +43,9 @@ public class RoomResourceManager extends BasicResourceManager {
 
         }else if(parsed[0].equals("ReserveRoom")){
             if (reserveRoom(stringToInt(parsed[1]), stringToInt(parsed[2]), parsed[3])) {
-                response = "Room Reserved";
+                response = String.valueOf(queryRoomsPrice(Integer.valueOf(parsed[1]),parsed[3]));
             } else {
-                response = "Room could not be reserved";
+                response = "false";
             }
         }
         return response;

@@ -44,9 +44,9 @@ public class CarResourceManager extends BasicResourceManager {
 
 		}else if(parsed[0].equals("ReserveCar")){
 			if (reserveCar(stringToInt(parsed[1]), stringToInt(parsed[2]), parsed[3])) {
-				response = "Car Reserved";
+				response = String.valueOf(queryCarsPrice(Integer.valueOf(parsed[1]),parsed[3]));
 			} else {
-				response = "Car could not be reserved";
+				response = "false";
 			}
 		}
 		return response;

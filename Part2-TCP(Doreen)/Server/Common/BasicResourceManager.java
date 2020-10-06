@@ -145,18 +145,7 @@ public abstract class BasicResourceManager extends Thread {
 		return value;        
 	}
 
-	// Reserve an item
-	protected boolean reserveItem(int xid, int customerID, String key, String location)
-	{
-		Trace.info("RM::reserveItem(" + xid + ", customer=" + customerID + ", " + key + ", " + location + ") called" );        
-		// Read customer object if it exists (and read lock it)
-		Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
-		if (customer == null)
-		{
-			Trace.warn("RM::reserveItem(" + xid + ", " + customerID + ", " + key + ", " + location + ")  failed--customer doesn't exist");
-			return false;
-		} 
-
+	protected boolean reserveItem(int xid, int customerID, String key, String location){
 		// Check if the item is available
 		ReservableItem item = (ReservableItem)readData(xid, key);
 		if (item == null)
@@ -170,9 +159,9 @@ public abstract class BasicResourceManager extends Thread {
 			return false;
 		}
 		else
-		{            
-			customer.reserve(key, location, item.getPrice());        
-			writeData(xid, customer.getKey(), customer);
+		{
+//			customer.reserve(key, location, item.getPrice());
+//			writeData(xid, customer.getKey(), customer);
 
 			// Decrease the number of available items in the storage
 			item.setCount(item.getCount() - 1);
@@ -181,8 +170,48 @@ public abstract class BasicResourceManager extends Thread {
 
 			Trace.info("RM::reserveItem(" + xid + ", " + customerID + ", " + key + ", " + location + ") succeeded");
 			return true;
-		}        
+		}
 	}
+
+
+//	// Reserve an item
+//	protected boolean reserveItem(int xid, int customerID, String key, String location)
+//	{
+//		Trace.info("RM::reserveItem(" + xid + ", customer=" + customerID + ", " + key + ", " + location + ") called" );
+//		// Read customer object if it exists (and read lock it)
+//		Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
+//		if (customer == null)
+//		{
+//			Trace.warn("RM::reserveItem(" + xid + ", " + customerID + ", " + key + ", " + location + ")  failed--customer doesn't exist");
+//			return false;
+//		}
+//
+//		// Check if the item is available
+//		ReservableItem item = (ReservableItem)readData(xid, key);
+//		if (item == null)
+//		{
+//			Trace.warn("RM::reserveItem(" + xid + ", " + customerID + ", " + key + ", " + location + ") failed--item doesn't exist");
+//			return false;
+//		}
+//		else if (item.getCount() == 0)
+//		{
+//			Trace.warn("RM::reserveItem(" + xid + ", " + customerID + ", " + key + ", " + location + ") failed--No more items");
+//			return false;
+//		}
+//		else
+//		{
+//			customer.reserve(key, location, item.getPrice());
+//			writeData(xid, customer.getKey(), customer);
+//
+//			// Decrease the number of available items in the storage
+//			item.setCount(item.getCount() - 1);
+//			item.setReserved(item.getReserved() + 1);
+//			writeData(xid, item.getKey(), item);
+//
+//			Trace.info("RM::reserveItem(" + xid + ", " + customerID + ", " + key + ", " + location + ") succeeded");
+//			return true;
+//		}
+//	}
 
 }
  
