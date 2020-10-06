@@ -51,8 +51,8 @@ public class TCP_Client {
 
             if(parsed[0].equals("Quit")){
                 outputStream.writeUTF(command);
-                s.close();
-                Trace.info("Server connection closed");
+                String quitAck = inputStream.readUTF();
+                System.out.println(quitAck);
                 break;
             }
 
@@ -63,6 +63,7 @@ public class TCP_Client {
         stdin.close();
         inputStream.close();
         outputStream.close();
+        Trace.info("Server connection closed");
 
     }
 

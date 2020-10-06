@@ -26,7 +26,6 @@ public class MiddlewareServer {
 
                 DataInputStream inputStream = new DataInputStream(clientSocket.getInputStream());
                 DataOutputStream outputStream = new DataOutputStream(clientSocket.getOutputStream());
-
                 Thread t = new MiddlewareClientHandler(clientSocket, inputStream, outputStream);
                 t.start();
 

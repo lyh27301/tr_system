@@ -72,64 +72,110 @@ public class MiddlewareClientHandler extends Thread {
 
                 String command = parsed[0];
                 if (command.equals("Quit")) {
-                    //tell resource servers to quit
-                    //executeRequestAndSendBackToClient(ServerType.CAR, receivedFromClient);
-                    //executeRequestAndSendBackToClient(ServerType.FLIGHT, receivedFromClient);
-                    //executeRequestAndSendBackToClient(ServerType.ROOM, receivedFromClient);
-                    //executeRequestAndSendBackToClient(ServerType.CUSTOMER, receivedFromClient);
-                    carSocket.close();
-                    flightSocket.close();
-                    roomSocket.close();
-                    customerSocket.close();
+                    if (executeRequestInResourceManager(ServerType.CAR, receivedFromClient).equals("Quit Received")){
+                        Trace.info("Quitting the car server connection in a thread...");
+                    }
+                    if (executeRequestInResourceManager(ServerType.FLIGHT, receivedFromClient).equals("Quit Received")){
+                        Trace.info("Quitting the flight server connection in a thread...");
+                    }
+                    if (executeRequestInResourceManager(ServerType.ROOM, receivedFromClient).equals("Quit Received")){
+                        Trace.info("Quitting the room server connection in a thread...");
+                    }
+                    if (executeRequestInResourceManager(ServerType.CUSTOMER, receivedFromClient).equals("Quit Received")){
+                        Trace.info("Quitting the customer server connection in a thread...");
+                    }
+
                     clientOutputStream.writeUTF("Good Bye");
-                    this.clientSocket.close();
-                    Trace.info("Quit Command received.");
                     break;
                 }
 
                 //Choose the responsible service
-                if (command.equals("AddCars") || command.equals("DeleteCars") || command.equals("QueryCars")
+                else if (command.equals("AddCars") || command.equals("DeleteCars") || command.equals("QueryCars")
                         || command.equals("QueryCarsPrice") || command.equals("ReserveCar")) {
-                    executeRequestAndSendBackToClient(ServerType.CAR, receivedFromClient);
+                    String response = executeRequestInResourceManager(ServerType.CAR, receivedFromClient);
+                    clientOutputStream.writeUTF(response);
                 }
-                if (command.equals("AddFlight") || command.equals("DeleteFlights") || command.equals("QueryFlight")
+                else if (command.equals("AddFlight") || command.equals("DeleteFlights") || command.equals("QueryFlight")
                         || command.equals("QueryFlightPrice") || command.equals("ReserveFlight")) {
-                    executeRequestAndSendBackToClient(ServerType.FLIGHT, receivedFromClient);
+                    String response = executeRequestInResourceManager(ServerType.FLIGHT, receivedFromClient);
+                    clientOutputStream.writeUTF(response);
                 }
-                if (command.equals("AddRooms") || command.equals("DeleteRooms") || command.equals("QueryRooms")
+                else if (command.equals("AddRooms") || command.equals("DeleteRooms") || command.equals("QueryRooms")
                         || command.equals("QueryRoomsPrice") || command.equals("ReserveRoom")) {
-                    executeRequestAndSendBackToClient(ServerType.ROOM, receivedFromClient);
+                    String response = executeRequestInResourceManager(ServerType.ROOM, receivedFromClient);
+                    clientOutputStream.writeUTF(response);
                 }
-                if (command.equals("AddCustomer") || command.equals("AddCustomerID") || command.equals("DeleteCustomer")
+                else if (command.equals("AddCustomer") || command.equals("AddCustomerID") || command.equals("DeleteCustomer")
                         || command.equals("QueryCustomer")) {
-                    executeRequestAndSendBackToClient(ServerType.CUSTOMER, receivedFromClient);
+                    String response = executeRequestInResourceManager(ServerType.CUSTOMER, receivedFromClient);
+                    clientOutputStream.writeUTF(response);
                 }
-                if (command.equals("Bundle")) {
+                else if (command.equals("Bundle")) {
                     //executeBundleSendBackToClient(receivedFromClient);
+                }
+                else {
+                    clientOutputStream.writeUTF("Unsupported command! Please check the user guide!");
                 }
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
         }
         try {
+            //carSocket.close();
             carInputStream.close();
             carOutputStream.close();
+            Trace.info("Car server connection is closed in a thread.");
+
+            //flightSocket.close();
             flightInputStream.close();
             flightOutputStream.close();
+            Trace.info("Flight server connection is closed in a thread.");
+
+            //roomSocket.close();
             roomInputStream.close();
             roomOutputStream.close();
+            Trace.info("Room server connection is closed in a thread.");
+
+            //customerSocket.close();
             customerInputStream.close();
             customerOutputStream.close();
+            Trace.info("Customer server connection is closed in a thread.");
+
+            this.clientSocket.close();
             this.clientOutputStream.close();
             this.clientInputStream.close();
-            Trace.info("Connections to the client and resource managers are closed.");
+            Trace.info("Client connection is closed in a thread.");
+
         } catch (IOException e) {
             e.printStackTrace();
         }
 
     }
+
+    public String executeRequestInResourceManager (ServerType serverType, String message) throws IOException {
+        String response ="";
+        switch (serverType) {
+            case CAR:
+                this.carOutputStream.writeUTF(message);
+                response = carInputStream.readUTF();
+                break;
+            case FLIGHT:
+                this.flightOutputStream.writeUTF(message);
+                response = flightInputStream.readUTF();
+                break;
+            case ROOM:
+                this.roomOutputStream.writeUTF(message);
+                response = roomInputStream.readUTF();
+                break;
+            case CUSTOMER:
+                this.customerOutputStream.writeUTF(message);
+                response = customerInputStream.readUTF();
+                break;
+        }
+        return response;
+    }
+
 
 
     public void executeRequestAndSendBackToClient(ServerType serverType, String message) throws IOException {

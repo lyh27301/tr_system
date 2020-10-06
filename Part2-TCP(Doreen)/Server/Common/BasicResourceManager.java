@@ -34,8 +34,8 @@ public abstract class BasicResourceManager extends Thread {
 				String[] parsed = received.split(",");
 
 				if (parsed[0].equals("Quit")){
-					this.clientSocket.close();
-					Trace.info("Connection closed");
+					outputStream.writeUTF("Quit Received");
+					Trace.info("Quitting a client connection...");
 					break;
 				}
 
@@ -44,11 +44,12 @@ public abstract class BasicResourceManager extends Thread {
 			}catch (IOException e) {
 				e.printStackTrace();
 			}
-
 		}
 		try{
-			this.outputStream.close();
+			this.clientSocket.close();
 			this.inputStream.close();
+			this.outputStream.close();
+			Trace.info("Client connection is closed.");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
