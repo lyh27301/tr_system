@@ -1,7 +1,10 @@
 package Server.Interface;
 
+import Server.Common.ReservedItem;
+
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.List;
 
 public interface ICustomerManager extends Remote {
     /**
@@ -23,10 +26,9 @@ public interface ICustomerManager extends Remote {
     /**
      * Delete a customer and associated reservations.
      *
-     * @return Success
+     * @return items string
      */
-    public boolean deleteCustomer(int id, int customerID)
-            throws RemoteException;
+    public String deleteCustomer(int xid, int customerID) throws RemoteException;
 
 
     /**
@@ -36,6 +38,15 @@ public interface ICustomerManager extends Remote {
      */
     public String queryCustomerInfo(int id, int customerID)
             throws RemoteException;
+
+
+    /**
+     * Add item in customer reservations.
+     *
+     * @return Success
+     */
+    public boolean reserveItem (int xid, int customerID, String key, String location, int price) throws RemoteException;;
+
 
 
 }

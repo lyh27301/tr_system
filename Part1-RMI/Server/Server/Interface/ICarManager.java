@@ -41,11 +41,7 @@ public interface ICarManager extends Remote {
     public int queryCarsPrice(int id, String location)
             throws RemoteException;
 
-    /**
-     * Reserve a car at this location.
-     *
-     * @return Success
-     */
-    public boolean reserveCar(int id, int customerID, String location)
+
+    public boolean cancelCar(int xid, int customerID, String key, int count)
             throws RemoteException;
 }

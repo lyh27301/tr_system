@@ -1,8 +1,7 @@
 package Server.MiddlewareServer;
 
+import Server.Common.*;
 import Server.Interface.ICarManager;
-import Server.Common.RMHashMap;
-import Server.Common.Trace;
 import Server.Interface.ICustomerManager;
 import Server.Interface.IFlightManager;
 import Server.Interface.IResourceManager;
@@ -10,6 +9,7 @@ import Server.Interface.IRoomManager;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 public class MiddlewareResourceManager implements IResourceManager {
@@ -41,30 +41,6 @@ public class MiddlewareResourceManager implements IResourceManager {
     }
 
 
-    @Override
-    public boolean addCars(int id, String location, int numCars, int price) throws RemoteException {
-        return carResourceManager.addCars (id, location, numCars, price);
-    }
-
-    @Override
-    public boolean deleteCars(int id, String location) throws RemoteException {
-        return carResourceManager.deleteCars(id, location);
-    }
-
-    @Override
-    public int queryCars(int id, String location) throws RemoteException {
-        return carResourceManager.queryCars(id, location);
-    }
-
-    @Override
-    public int queryCarsPrice(int id, String location) throws RemoteException {
-        return carResourceManager.queryCarsPrice(id, location);
-    }
-
-    @Override
-    public boolean reserveCar(int id, int customerID, String location) throws RemoteException {
-        return carResourceManager.reserveCar(id, customerID, location);
-    }
 
     @Override
     public boolean addFlight(int id, int flightNum, int flightSeats, int flightPrice) throws RemoteException {
@@ -72,48 +48,13 @@ public class MiddlewareResourceManager implements IResourceManager {
     }
 
     @Override
-    public boolean deleteFlight(int id, int flightNum) throws RemoteException {
-        return flightResourceManager.deleteFlight(id, flightNum);
-    }
-
-    @Override
-    public int queryFlight(int id, int flightNumber) throws RemoteException {
-        return flightResourceManager.queryFlight(id, flightNumber);
-    }
-
-    @Override
-    public int queryFlightPrice(int id, int flightNumber) throws RemoteException {
-        return flightResourceManager.queryFlightPrice(id, flightNumber);
-    }
-
-    @Override
-    public boolean reserveFlight(int id, int customerID, int flightNumber) throws RemoteException {
-        return flightResourceManager.reserveFlight(id, customerID, flightNumber);
+    public boolean addCars(int id, String location, int numCars, int price) throws RemoteException {
+        return carResourceManager.addCars (id, location, numCars, price);
     }
 
     @Override
     public boolean addRooms(int id, String location, int numRooms, int price) throws RemoteException {
         return roomResourceManager.addRooms(id, location, numRooms, price);
-    }
-
-    @Override
-    public boolean deleteRooms(int id, String location) throws RemoteException {
-        return roomResourceManager.deleteRooms(id, location);
-    }
-
-    @Override
-    public int queryRooms(int id, String location) throws RemoteException {
-        return roomResourceManager.queryRooms(id, location);
-    }
-
-    @Override
-    public int queryRoomsPrice(int id, String location) throws RemoteException {
-        return roomResourceManager.queryRoomsPrice(id, location);
-    }
-
-    @Override
-    public boolean reserveRoom(int id, int customerID, String location) throws RemoteException {
-        return roomResourceManager.reserveRoom(id, customerID, location);
     }
 
     @Override
@@ -127,8 +68,57 @@ public class MiddlewareResourceManager implements IResourceManager {
     }
 
     @Override
+    public boolean deleteFlight(int id, int flightNum) throws RemoteException {
+        return flightResourceManager.deleteFlight(id, flightNum);
+    }
+
+    @Override
+    public boolean deleteCars(int id, String location) throws RemoteException {
+        return carResourceManager.deleteCars(id, location);
+    }
+
+    @Override
+    public boolean deleteRooms(int id, String location) throws RemoteException {
+        return roomResourceManager.deleteRooms(id, location);
+    }
+
+    @Override
     public boolean deleteCustomer(int id, int customerID) throws RemoteException {
-        return customerResourceManager.deleteCustomer(id,customerID);
+        String response = customerResourceManager.deleteCustomer(id, customerID );
+        if (response.equals("false") || response.equals("")){
+            return false;
+        }else{
+            String[] reservations = response.split(",");
+            int count = 0;
+
+            while(count < reservations.length){
+                String type = reservations[count].split("-")[0];
+                if(type.equals("car")){
+                    carResourceManager.cancelCar(id, customerID, reservations[count], Integer.parseInt(reservations[count+1]));
+                }else if(type.equals("room")){
+                    roomResourceManager.cancelRoom(id, customerID, reservations[count], Integer.parseInt(reservations[count+1]));
+                }else{
+                    flightResourceManager.cancelFlight(id, customerID, reservations[count], Integer.parseInt(reservations[count+1]));
+                }
+                count +=2;
+            }
+            return true;
+        }
+    }
+
+    @Override
+    public int queryFlight(int id, int flightNumber) throws RemoteException {
+        return flightResourceManager.queryFlight(id, flightNumber);
+    }
+
+    @Override
+    public int queryCars(int id, String location) throws RemoteException {
+        return carResourceManager.queryCars(id, location);
+    }
+
+    @Override
+    public int queryRooms(int id, String location) throws RemoteException {
+        return roomResourceManager.queryRooms(id, location);
     }
 
     @Override
@@ -137,31 +127,91 @@ public class MiddlewareResourceManager implements IResourceManager {
     }
 
     @Override
+    public int queryFlightPrice(int id, int flightNumber) throws RemoteException {
+        return flightResourceManager.queryFlightPrice(id, flightNumber);
+    }
+
+    @Override
+    public int queryCarsPrice(int id, String location) throws RemoteException {
+        return carResourceManager.queryCarsPrice(id, location);
+    }
+
+    @Override
+    public int queryRoomsPrice(int id, String location) throws RemoteException {
+        return roomResourceManager.queryRoomsPrice(id, location);
+    }
+
+    @Override
+    public boolean reserveFlight(int id, int customerID, int flightNumber) throws RemoteException {
+        boolean customerExists = customerResourceManager.queryCustomerInfo(id, customerID).equals("");
+        if (!customerExists) return false;
+
+        boolean successFlight = flightResourceManager.reserveFlight(id, customerID, flightNumber);
+        boolean successCustomer = customerResourceManager.reserveItem(id,customerID, Flight.getKey(flightNumber),Integer.toString(flightNumber),
+                flightResourceManager.queryFlightPrice(id, flightNumber));
+        if (successFlight && successCustomer){
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean reserveCar(int id, int customerID, String location) throws RemoteException {
+        boolean customerExists = customerResourceManager.queryCustomerInfo(id, customerID).equals("");
+        if (!customerExists) return false;
+
+        boolean successCar = carResourceManager.reserveCar(id, customerID, location);
+        boolean successCustomer = customerResourceManager.reserveItem(id,customerID, Car.getKey(location),location,
+                carResourceManager.queryCarsPrice(id, location));
+        if (successCar && successCustomer){
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean reserveRoom(int id, int customerID, String location) throws RemoteException {
+        boolean customerExists = customerResourceManager.queryCustomerInfo(id, customerID).equals("");
+        if (!customerExists) return false;
+
+        boolean successRoom = roomResourceManager.reserveRoom(id, customerID, location);
+        boolean successCustomer = customerResourceManager.reserveItem(id,customerID, Room.getKey(location),location,
+                roomResourceManager.queryRoomsPrice(id, location));
+        if (successRoom && successCustomer){
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public boolean bundle(int id, int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room) throws RemoteException {
         ArrayList<String> reservedFlights = new ArrayList<String>();
 
         boolean flightsBooked = true;
         for (String fn: flightNumbers) {
-            if (!flightResourceManager.reserveFlight(id, customerID,(Integer.valueOf(fn)). intValue())){
+            if (!reserveFlight(id, customerID, (Integer.valueOf(fn)). intValue())){
                 flightsBooked = false;
                 break;
             }
         }
 
-        boolean carBooked = carResourceManager.reserveCar(id,customerID, location);
-        boolean roomBooked = roomResourceManager.reserveRoom(id,customerID, location);
+        boolean carBooked = true;
+        if (car) carBooked = carResourceManager.reserveCar(id,customerID, location);
+        boolean roomBooked = true;
+        if(room) roomBooked = roomResourceManager.reserveRoom(id,customerID, location);
+
 
         // if any not successful, add the booked item back
         if (!carBooked || !roomBooked || !flightsBooked) {
-            if (carBooked) {
+            if (carBooked && car) {
                 carResourceManager.addCars(id, location, 1, carResourceManager.queryCarsPrice(id, location));
             }
-            if (roomBooked) {
+            if (roomBooked && room) {
                 roomResourceManager.addRooms(id, location, 1,roomResourceManager.queryRoomsPrice(id, location));
             }
             for (String fn: reservedFlights) {
                 int flightNumber = (Integer.valueOf(fn)). intValue();
-                flightResourceManager.addFlight(id, flightNumber, 1, flightResourceManager.queryFlightPrice(id, flightNumber));
+                flightResourceManager.cancelFlight(id, customerID, Flight.getKey((Integer.valueOf(fn)).intValue()), 1);
             }
             Trace.error("Fail to book bundle with Customer ID" + customerID);
             return false;

@@ -107,12 +107,15 @@ public class BasicResourceManager
 	{
 		Trace.info("RM::reserveItem(" + xid + ", customer=" + customerID + ", " + key + ", " + location + ") called" );        
 		// Read customer object if it exists (and read lock it)
+		/*
 		Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
 		if (customer == null)
 		{
 			Trace.warn("RM::reserveItem(" + xid + ", " + customerID + ", " + key + ", " + location + ")  failed--customer doesn't exist");
 			return false;
-		} 
+		}
+		*/
+
 
 		// Check if the item is available
 		ReservableItem item = (ReservableItem)readData(xid, key);
@@ -128,8 +131,8 @@ public class BasicResourceManager
 		}
 		else
 		{            
-			customer.reserve(key, location, item.getPrice());        
-			writeData(xid, customer.getKey(), customer);
+			//customer.reserve(key, location, item.getPrice());
+			//writeData(xid, customer.getKey(), customer);
 
 			// Decrease the number of available items in the storage
 			item.setCount(item.getCount() - 1);
@@ -145,5 +148,15 @@ public class BasicResourceManager
 	{
 		return m_name;
 	}
+
+	protected boolean cancelReservation(int xid, int customerID, String key, int count){
+		ReservableItem item  = (ReservableItem)readData(xid, key);
+		Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") has reserved " + key + " which is reserved " +  item.getReserved() +  " times and is still available " + item.getCount() + " times");
+		item.setReserved(item.getReserved() - count);
+		item.setCount(item.getCount() + count);
+		writeData(xid, item.getKey(), item);
+		return true;
+	}
+
 }
  

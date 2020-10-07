@@ -64,10 +64,9 @@ public class CarResourceManager extends BasicResourceManager implements ICarMana
 		return queryPrice(xid, Car.getKey(location));
 	}
 
-	// Adds car reservation to this customer
-	public boolean reserveCar(int xid, int customerID, String location) throws RemoteException
-	{
-		return reserveItem(xid, customerID, Car.getKey(location), location);
+	public boolean cancelCar(int xid, int customerID, String key, int count){
+		cancelReservation(xid,customerID,key,count);
+		return true;
 	}
 
 }

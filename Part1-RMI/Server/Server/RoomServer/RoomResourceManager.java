@@ -62,4 +62,9 @@ public class RoomResourceManager extends BasicResourceManager implements IRoomMa
         return reserveItem(xid, customerID, Room.getKey(location), location);
     }
 
+    public boolean cancelRoom(int xid, int customerID, String key, int count){
+        cancelReservation(xid,customerID,key,count);
+        return true;
+    }
+
 }
