@@ -14,6 +14,7 @@ public class FlightTCPServer {
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(port);
+        Trace.info("Flight server is running ...");
 
         while (true) {
             Socket clientSocket = null;

@@ -5,17 +5,17 @@ import Server.Common.Trace;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.Arrays;
-import java.util.StringTokenizer;
-import java.util.Vector;
+
 
 public class TCP_Client {
 
-    static String middlewareHost = "localhost";
+
     static int middlewarePort = 6116;
 
     public static void main (String[] args) throws Exception{
 
+        String middlewareHost = "localhost";
+        if (args.length > 0) middlewareHost = args[0];
 
         InetAddress ip = InetAddress.getByName(middlewareHost);
         Socket s = new Socket(ip, middlewarePort);
