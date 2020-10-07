@@ -18,7 +18,7 @@ public class CustomerResourceManager extends BasicResourceManager {
     public String executeRequest(String[] parsed) {
         String response = "";
         if (parsed[0].equals("QueryCustomer")){
-            response = "Customer Info: "+queryCustomerInfo(stringToInt(parsed[1]), stringToInt(parsed[2]));
+            response = queryCustomerInfo(stringToInt(parsed[1]), stringToInt(parsed[2]));
 
         }else if (parsed[0].equals("AddCustomerID")){
              if (newCustomer(stringToInt(parsed[1]), stringToInt(parsed[2]))){
