@@ -172,6 +172,14 @@ public abstract class BasicResourceManager extends Thread {
 			return true;
 		}
 	}
+	protected boolean cancelReservation(int xid, int customerID, String key, int count){
+		ReservableItem item  = (ReservableItem)readData(xid, key);
+		Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") has reserved " + key + " which is reserved " +  item.getReserved() +  " times and is still available " + item.getCount() + " times");
+		item.setReserved(item.getReserved() - count);
+		item.setCount(item.getCount() + count);
+		writeData(xid, item.getKey(), item);
+		return true;
+	}
 
 
 //	// Reserve an item

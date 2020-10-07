@@ -33,10 +33,9 @@ public class CustomerResourceManager extends BasicResourceManager {
 
 
         }else if(parsed[0].equals("DeleteCustomer")){
-            if (deleteCustomer(stringToInt(parsed[1]), stringToInt(parsed[2]))){
-                response = "Customer deleted. All reserved items are canceled";
-            }else{
-                response = "Fail to delete customer. Customer does not exist.";
+            response = deleteCustomer(stringToInt(parsed[1]), stringToInt(parsed[2]));
+            if (response.equals("false")){
+                response = "false";
             }
         }else if(parsed[0].equals("ReserveItem")){
             if(reserveItem(stringToInt(parsed[1]),stringToInt(parsed[2]),parsed[3],parsed[4],stringToInt(parsed[5]))){
@@ -77,34 +76,43 @@ public class CustomerResourceManager extends BasicResourceManager {
         }
     }
 
-    public boolean deleteCustomer(int xid, int customerID)
+    public String deleteCustomer(int xid, int customerID)
     {
         Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") called");
         Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
         if (customer == null)
         {
             Trace.warn("RM::deleteCustomer(" + xid + ", " + customerID + ") failed--customer doesn't exist");
-            return false;
+            return "false";
         }
         else
         {
             // Increase the reserved numbers of all reservable items which the customer reserved.
             RMHashMap reservations = customer.getReservations();
+            String items = "";
+            boolean ifFirstItem = true;
             for (String reservedKey : reservations.keySet())
             {
                 ReservedItem reserveditem = customer.getReservedItem(reservedKey);
                 Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") has reserved " + reserveditem.getKey() + " " +  reserveditem.getCount() +  " times");
-                ReservableItem item  = (ReservableItem)readData(xid, reserveditem.getKey());
-                Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") has reserved " + reserveditem.getKey() + " which is reserved " +  item.getReserved() +  " times and is still available " + item.getCount() + " times");
-                item.setReserved(item.getReserved() - reserveditem.getCount());
-                item.setCount(item.getCount() + reserveditem.getCount());
-                writeData(xid, item.getKey(), item);
+                if(ifFirstItem == true){
+                    items = items + reservedKey + "," + reserveditem.getCount();
+                    ifFirstItem = false;
+                }
+                else{
+                    items = items + ","+reservedKey + "," +reserveditem.getCount();
+                }
+//                ReservableItem item  = (ReservableItem)readData(xid, reserveditem.getKey());
+//                Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") has reserved " + reserveditem.getKey() + " which is reserved " +  item.getReserved() +  " times and is still available " + item.getCount() + " times");
+//                item.setReserved(item.getReserved() - reserveditem.getCount());
+//                item.setCount(item.getCount() + reserveditem.getCount());
+//                writeData(xid, item.getKey(), item);
             }
 
             // Remove the customer from the storage
             removeData(xid, customer.getKey());
             Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") succeeded");
-            return true;
+            return items ;
         }
     }
 

@@ -1,5 +1,7 @@
 package Server.MiddlewareServer;
 
+import Server.Common.Car;
+import Server.Common.Flight;
 import Server.Common.Room;
 import Server.Common.Trace;
 
@@ -119,7 +121,7 @@ public class MiddlewareClientHandler extends Thread {
                     String response = executeRequestInResourceManager(ServerType.ROOM, receivedFromClient);
                     clientOutputStream.writeUTF(response);
                 }
-                else if (command.equals("AddCustomer") || command.equals("AddCustomerID") || command.equals("DeleteCustomer")
+                else if (command.equals("AddCustomer") || command.equals("AddCustomerID")
                         || command.equals("QueryCustomer")) {
                     String response = executeRequestInResourceManager(ServerType.CUSTOMER, receivedFromClient);
                     clientOutputStream.writeUTF(response);
@@ -127,10 +129,10 @@ public class MiddlewareClientHandler extends Thread {
                 else if(command.equals("ReserveRoom")){
                     if(checkCustomerExists(Integer.parseInt(parsed[1]),Integer.parseInt(parsed[2]))){
                         String response = executeRequestInResourceManager(ServerType.ROOM, receivedFromClient);
-                        if(response.equals(false)){
+                        if(response.equals("false")){
                             clientOutputStream.writeUTF("Room could not be reserved");
                         }else{
-                            String request = "ReserveItem,"+parsed[1]+","+parsed[2]+","+parsed[3]+","+parsed[3]+","+Integer.valueOf(response);
+                            String request = "ReserveItem,"+parsed[1]+","+parsed[2]+","+Room.getKey(parsed[3])+","+parsed[3]+","+Integer.valueOf(response);
                             response = executeRequestInResourceManager(ServerType.CUSTOMER, request);
                             clientOutputStream.writeUTF(response);
                         }
@@ -142,10 +144,10 @@ public class MiddlewareClientHandler extends Thread {
                 else if (command.equals("ReserveFlight")){
                     if(checkCustomerExists(Integer.parseInt(parsed[1]),Integer.parseInt(parsed[2]))){
                         String response = executeRequestInResourceManager(ServerType.FLIGHT, receivedFromClient);
-                        if(response.equals(false)){
+                        if(response.equals("false")){
                             clientOutputStream.writeUTF("Flight could not be reserved");
                         }else{
-                            String request = "ReserveItem,"+parsed[1]+","+parsed[2]+","+parsed[3]+","+parsed[3]+","+Integer.valueOf(response);
+                            String request = "ReserveItem,"+parsed[1]+","+parsed[2]+","+ Flight.getKey(Integer.parseInt(parsed[3]))+","+parsed[3]+","+Integer.valueOf(response);
                             response = executeRequestInResourceManager(ServerType.CUSTOMER, request);
                             clientOutputStream.writeUTF(response);
                         }
@@ -156,10 +158,10 @@ public class MiddlewareClientHandler extends Thread {
                 else if( command.equals("ReserveCar")){
                     if(checkCustomerExists(Integer.parseInt(parsed[1]),Integer.parseInt(parsed[2]))){
                         String response = executeRequestInResourceManager(ServerType.CAR, receivedFromClient);
-                        if(response.equals(false)){
+                        if(response.equals("false")){
                             clientOutputStream.writeUTF("Car could not be reserved");
                         }else{
-                            String request = "ReserveItem,"+parsed[1]+","+parsed[2]+","+parsed[3]+","+parsed[3]+","+Integer.valueOf(response);
+                            String request = "ReserveItem,"+parsed[1]+","+parsed[2]+","+ Car.getKey(parsed[3])+","+parsed[3]+","+Integer.valueOf(response);
                             response = executeRequestInResourceManager(ServerType.CUSTOMER, request);
                             clientOutputStream.writeUTF(response);
                         }
@@ -167,6 +169,35 @@ public class MiddlewareClientHandler extends Thread {
                         clientOutputStream.writeUTF("Failed-Customer does not exists");
                     }
 
+                }
+                else if (command.equals("DeleteCustomer")){
+                    String response = executeRequestInResourceManager(ServerType.CUSTOMER, receivedFromClient);
+                    if(response.equals("false")){
+                        clientOutputStream.writeUTF("Failed-Customer does not exists");
+                    }
+                    else if(response.equals("")){
+                        clientOutputStream.writeUTF(("Customer does not any reservation and was deleted successfully."));
+                    }
+                    else{
+                        String[] reservations = response.split(",");
+                        int count = 0;
+                        while(count < reservations.length){
+                            String type = reservations[count].split("-")[0];
+                            if(type.equals("car")){
+                                String addBack = "CancelCar,"+parsed[1]+","+parsed[2]+","+reservations[count] +","+ reservations[count+1];
+                                System.out.println(addBack);
+                                executeRequestInResourceManager(ServerType.CAR, addBack);
+                            }else if(type.equals("room")){
+                                String addBack = "CancelRoom,"+parsed[1]+","+parsed[2]+","+reservations[count] +","+ reservations[count+1];
+                                executeRequestInResourceManager(ServerType.ROOM, addBack);
+                            }else{
+                                String addBack = "CancelFlight,"+parsed[1]+","+parsed[2]+","+reservations[count] +","+ reservations[count+1];
+                                executeRequestInResourceManager(ServerType.FLIGHT, addBack);
+                            }
+                            count +=2;
+                        }
+                        clientOutputStream.writeUTF("Customer was deleted and all his/her reservations were canceled");
+                    }
                 }
                 else if (command.equals("Bundle")) {
                     //executeBundleSendBackToClient(receivedFromClient);

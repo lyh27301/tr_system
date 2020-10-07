@@ -48,9 +48,16 @@ public class RoomResourceManager extends BasicResourceManager {
                 response = "false";
             }
         }
+        else if((parsed[0].equals("CancelRoom"))){
+            response = String.valueOf(cancelRoom(Integer.valueOf(parsed[1]),Integer.valueOf(parsed[2]),parsed[3],Integer.valueOf(parsed[4])));
+        }
         return response;
     }
 
+    protected boolean cancelRoom(int xid, int customerID, String key, int count){
+        cancelReservation(xid,customerID,key,count);
+        return true;
+    }
     // Create a new room location or add rooms to an existing location
     // NOTE: if price <= 0 and the room location already exists, it maintains its current price
     public boolean addRooms(int xid, String location, int count, int price)
