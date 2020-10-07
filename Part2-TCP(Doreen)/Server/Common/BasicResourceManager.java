@@ -43,6 +43,7 @@ public abstract class BasicResourceManager extends Thread {
 				outputStream.writeUTF(response);
 			}catch (IOException e) {
 				e.printStackTrace();
+				break;
 			}
 		}
 		try{
