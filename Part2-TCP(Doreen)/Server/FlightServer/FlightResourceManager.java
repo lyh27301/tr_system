@@ -35,7 +35,7 @@ public class FlightResourceManager extends BasicResourceManager {
 
         }else if(parsed[0].equals("QueryFlight")){
             int numFlights = queryFlight(stringToInt(parsed[1]), stringToInt(parsed[2]));
-            response = "Number of flights at this location: " + numFlights;
+            response = "Number of seats of this flight: " + numFlights;
 
         }else if(parsed[0].equals("QueryFlightPrice")){
             int price = queryFlightPrice(stringToInt(parsed[1]), stringToInt(parsed[2]));

@@ -34,7 +34,7 @@ public class RMIClient extends Client
 			System.err.println((char)27 + "[31;1mClient exception: " + (char)27 + "[0mUsage: java client.RMIClient [server_hostname [server_rmiobject]]");
 			System.exit(1);
 		}
-		System.setProperty("java.security.policy", "/Users/doreenhe/Documents/MySrc/travel_reservation_system/Template/Server/Server/MiddlewareServer/security.policy");
+		System.setProperty("java.security.policy", "/Users/kristi/Desktop/2020Fall/COMP512/project/travel_reservation_system/Part1-RMI/security.policy");
 
 		// Set the security policy
 		if (System.getSecurityManager() == null)

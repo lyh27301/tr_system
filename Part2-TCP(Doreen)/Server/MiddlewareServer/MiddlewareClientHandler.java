@@ -111,7 +111,7 @@ public class MiddlewareClientHandler extends Thread {
                     String response = executeRequestInResourceManager(ServerType.CAR, receivedFromClient);
                     clientOutputStream.writeUTF(response);
                 }
-                else if (command.equals("AddFlight") || command.equals("DeleteFlights") || command.equals("QueryFlight")
+                else if (command.equals("AddFlight") || command.equals("DeleteFlight") || command.equals("QueryFlight")
                         || command.equals("QueryFlightPrice") ) {
                     String response = executeRequestInResourceManager(ServerType.FLIGHT, receivedFromClient);
                     clientOutputStream.writeUTF(response);
