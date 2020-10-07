@@ -50,8 +50,13 @@ public class MiddlewareRMIServer extends MiddlewareResourceManager{
 
 
     public static void main(String args[]) {
-        System.setProperty("java.security.policy", "/Users/doreenhe/Documents/MySrc/travel_reservation_system/Part1-RMI/security.policy");
         if (System.getSecurityManager() == null) System.setSecurityManager(new SecurityManager());
+
+        //set host from arguments
+        if (args.length > 0) car_serverHost = args[0];
+        if (args.length > 1) flight_serverHost = args[1];
+        if (args.length > 2) room_serverHost = args[2];
+        if (args.length > 3) customer_serverHost = args[3];
 
         try {
             final MiddlewareRMIServer middlewareServer = new MiddlewareRMIServer();
