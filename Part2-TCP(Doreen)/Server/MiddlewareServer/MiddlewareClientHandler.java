@@ -22,17 +22,17 @@ public class MiddlewareClientHandler extends Thread {
     enum ServerType {CAR, FLIGHT, ROOM, CUSTOMER}
 
     //configuration
-    static String carServerHost = "localhost";
-    static int carServerPort = 6316;
+    String carServerHost = "localhost";
+    int carServerPort = 6316;
 
-    static String flightServerHost = "localhost";
-    static int flightServerPort = 6216;
+    String flightServerHost = "localhost";
+    int flightServerPort = 6216;
 
-    static String roomServerHost = "localhost";
-    static int roomServerPort = 6416;
+    String roomServerHost = "localhost";
+    int roomServerPort = 6416;
 
-    static String customerServerHost = "localhost";
-    static int customerServerPort = 6516;
+    String customerServerHost = "localhost";
+    int customerServerPort = 6516;
 
     //connections
     Socket carSocket;
@@ -52,10 +52,23 @@ public class MiddlewareClientHandler extends Thread {
     DataOutputStream customerOutputStream;
 
 
-    public MiddlewareClientHandler(Socket clientSocket, DataInputStream inputStream, DataOutputStream outputStream) {
+    public MiddlewareClientHandler(Socket clientSocket,
+                                   DataInputStream inputStream,
+                                   DataOutputStream outputStream,
+                                   String carServerHost,
+                                   String flightServerHost,
+                                   String roomServerHost,
+                                   String customerServerHost) {
+
         this.clientInputStream = inputStream;
         this.clientOutputStream = outputStream;
         this.clientSocket = clientSocket;
+
+        this.carServerHost = carServerHost;
+        this.flightServerHost = flightServerHost;
+        this.roomServerHost = roomServerHost;
+        this.customerServerHost = customerServerHost;
+
         connectToServer(ServerType.CAR);
         connectToServer(ServerType.FLIGHT);
         connectToServer(ServerType.ROOM);

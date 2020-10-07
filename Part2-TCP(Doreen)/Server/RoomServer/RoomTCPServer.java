@@ -13,6 +13,7 @@ public class RoomTCPServer {
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(port);
+        Trace.info("Room server is running ...");
 
         while (true) {
             Socket clientSocket = null;

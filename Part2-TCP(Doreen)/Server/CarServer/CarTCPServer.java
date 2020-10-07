@@ -14,6 +14,7 @@ public class CarTCPServer {
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(port);
+        Trace.info("Car server is running ...");
 
         while (true) {
             Socket clientSocket = null;

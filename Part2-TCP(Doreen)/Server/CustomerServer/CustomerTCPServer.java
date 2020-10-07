@@ -14,6 +14,7 @@ public class CustomerTCPServer {
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(port);
+        Trace.info("Customer server is running ...");
 
         while (true) {
             Socket clientSocket = null;
