@@ -1,7 +1,6 @@
 package Client;
 
 import Server.Common.Trace;
-
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -46,7 +45,18 @@ public class TCP_Client {
                 parsed[i]=parsed[i].trim();
             }
             command = String.join(",", parsed);
-
+            parsed = command.split(",");
+            if(parsed[0].equals("Help")){
+                if (parsed.length == 1) {
+                    System.out.println(Command.description());
+                } else if (parsed.length == 2) {
+                    Command l_cmd = Command.fromString(parsed[1]);
+                    System.out.println(l_cmd.toString());
+                } else {
+                    System.err.println((char)27 + "[31;1mCommand exception: " + (char)27 + "[0mImproper use of help command. Location \"help\" or \"help,<CommandName>\"");
+                }
+                continue;
+            }
             outputStream.writeUTF(command);
 
             if(parsed[0].equals("Quit")){

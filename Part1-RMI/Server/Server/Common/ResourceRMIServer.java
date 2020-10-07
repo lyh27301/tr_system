@@ -21,7 +21,7 @@ public class ResourceRMIServer {
     }
 
     protected static void securitySetUp(){
-        System.setProperty("java.security.policy", "/Users/doreenhe/Documents/MySrc/travel_reservation_system/Template/Server/Server/MiddlewareServer/security.policy");
+        System.setProperty("java.security.policy","/Users/kristi/Desktop/2020Fall/COMP512/project/travel_reservation_system/Part1-RMI/security.policy");
         if (System.getSecurityManager() == null) {
             System.setSecurityManager(new SecurityManager());
         }
