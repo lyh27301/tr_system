@@ -39,7 +39,7 @@ public class CustomerResourceManager extends BasicResourceManager {
             }
         }else if(parsed[0].equals("ReserveItem")){
             if(reserveItem(stringToInt(parsed[1]),stringToInt(parsed[2]),parsed[3],parsed[4],stringToInt(parsed[5]))){
-                response = "Reserved successfully";
+                response = "Reserved "+parsed[3]+" successfully";
             }
         }
         return response;

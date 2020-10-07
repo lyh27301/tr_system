@@ -172,7 +172,6 @@ public class MiddlewareClientHandler extends Thread {
                             String type = reservations[count].split("-")[0];
                             if(type.equals("car")){
                                 String addBack = "CancelCar,"+parsed[1]+","+parsed[2]+","+reservations[count] +","+ reservations[count+1];
-                                System.out.println(addBack);
                                 executeRequestInResourceManager(ServerType.CAR, addBack);
                             }else if(type.equals("room")){
                                 String addBack = "CancelRoom,"+parsed[1]+","+parsed[2]+","+reservations[count] +","+ reservations[count+1];
@@ -187,7 +186,8 @@ public class MiddlewareClientHandler extends Thread {
                     }
                 }
                 else if (command.equals("Bundle")) {
-                    //executeBundleSendBackToClient(receivedFromClient);
+                    String response = executeBundleSendBackToClient(receivedFromClient);
+                    clientOutputStream.writeUTF(response);
                 }
                 else {
                     clientOutputStream.writeUTF("Unsupported command! Please check the user guide!");
@@ -258,8 +258,115 @@ public class MiddlewareClientHandler extends Thread {
 
 
 
-    public void executeBundleSendBackToClient(String receivedFromClient) {
-        //ToDo: implement bundle
+    public String executeBundleSendBackToClient(String receivedFromClient) throws IOException {
+
+        String[] parsed = receivedFromClient.split(",");
+
+        int argumentsLength = parsed.length;
+
+        int xid = Integer.parseInt(parsed[1]);
+
+        int customerID = Integer.parseInt(parsed[2]);
+
+        String location = parsed[argumentsLength - 3];
+
+        boolean bookCar = Boolean.parseBoolean(parsed[argumentsLength - 2]);
+
+        boolean bookRoom = Boolean.parseBoolean(parsed[argumentsLength - 1]);
+
+        int flightAmount = argumentsLength - 6;
+
+        ArrayList<Integer> reservedFlights = new ArrayList<>();
+        boolean carSuccess = false;
+        boolean roomSuccess = false;
+        boolean flightSuccess = false;
+        int carPrice = 0;
+        int roomPrice = 0;
+        ArrayList<Integer> flightsPrices = new ArrayList<>();
+        // Check if client exists
+        if (!checkCustomerExists(xid, customerID)) {
+            clientOutputStream.writeUTF("Failed-Customer does not exists");
+            return "";
+        }
+        if (flightAmount <= 0 ){
+            clientOutputStream.writeUTF("Failed-Customer should provide at least one flight number");
+            return "";
+        }
+        // Book a car if requested.
+        if (bookCar) {
+            String simulatedCmd = "ReserveCar," + xid + "," + customerID + "," + location;
+            String bookCarResponse = executeRequestInResourceManager(ServerType.CAR, simulatedCmd);
+            if (bookCarResponse.equals("false")) {
+                clientOutputStream.writeUTF("Car could not be reserved");
+            }else {
+                carPrice = Integer.valueOf(bookCarResponse);
+                carSuccess = true;
+            }
+        }
+        // Book a room if requested.
+        if (bookRoom) {
+            String simulatedCmd = "ReserveRoom," + xid + "," + customerID + "," + location;
+            String response = executeRequestInResourceManager(ServerType.ROOM, simulatedCmd);
+            if (response.equals("false")) {
+                clientOutputStream.writeUTF("Room could not be reserved");
+            }else{
+                roomPrice = Integer.valueOf(response);
+                roomSuccess = true;
+            }
+        }
+        // Reserve flights
+        for (int i = 0; i < flightAmount; i++) {
+            int flightNumber = Integer.parseInt(parsed[3 + i]);
+            String simulatedCmd = "ReserveFlight," + xid + "," + customerID + "," + flightNumber;
+            String response = executeRequestInResourceManager(ServerType.FLIGHT, simulatedCmd);
+            if(response.equals("false")){
+                clientOutputStream.writeUTF("Flight " +flightNumber+" could not be reserved");
+                break;
+            }
+            reservedFlights.add(flightNumber);
+            flightsPrices.add(Integer.valueOf(response));
+            if(i == flightAmount-1){
+                flightSuccess = true;
+            }
+        }
+        //reserve in customer side
+        if(flightSuccess &&carSuccess&& flightSuccess){
+            if(bookCar){
+                String request = "ReserveItem,"+xid+","+customerID+","+ Car.getKey(location)+","+location+","+carPrice;
+                String response = executeRequestInResourceManager(ServerType.CUSTOMER, request);
+                clientOutputStream.writeUTF(response);
+            }
+            if(bookRoom){
+                String request = "ReserveItem,"+xid+","+customerID+","+Room.getKey(location)+","+location+","+roomPrice;
+                String response = executeRequestInResourceManager(ServerType.CUSTOMER, request);
+                clientOutputStream.writeUTF(response);
+            }
+            int i =0;
+            for(int flightNum: reservedFlights ){
+                String request = "ReserveItem,"+xid+","+customerID+","+ Flight.getKey(flightNum)+","+flightNum+","+flightsPrices.get(i);
+                String response = executeRequestInResourceManager(ServerType.CUSTOMER, request);
+                i++;
+                clientOutputStream.writeUTF(response);
+            }
+            return "Bundle is reserved successfully!";
+
+        }
+        //add back reserved items.
+        else{
+            if(bookCar && carSuccess){
+                String addBack = "CancelCar,"+xid+","+customerID+","+Car.getKey(location)+","+ 1;
+                executeRequestInResourceManager(ServerType.CAR, addBack);
+            }
+            if(bookRoom && roomSuccess){
+                String addBack = "CancelRoom,"+xid+","+customerID+","+Room.getKey(location)+","+ 1;
+                executeRequestInResourceManager(ServerType.ROOM, addBack);
+            }
+            for(int flightNum: reservedFlights ){
+                String addBack = "CancelFlight,"+xid+","+customerID+","+Flight.getKey(flightNum)+","+ 1;
+                executeRequestInResourceManager(ServerType.FLIGHT, addBack);
+            }
+            return "Bundle failed";
+        }
     }
 
 
