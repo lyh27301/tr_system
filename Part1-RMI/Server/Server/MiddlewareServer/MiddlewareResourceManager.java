@@ -87,20 +87,22 @@ public class MiddlewareResourceManager implements IResourceManager {
         String response = customerResourceManager.deleteCustomer(id, customerID );
         if (response.equals("false") || response.equals("")){
             return false;
-        }else{
-            String[] reservations = response.split(",");
-            int count = 0;
+        }else {
+            if (!response.equals("None")){
+                String[] reservations = response.split(",");
+                    int count = 0;
 
-            while(count < reservations.length){
-                String type = reservations[count].split("-")[0];
-                if(type.equals("car")){
-                    carResourceManager.cancelCar(id, customerID, reservations[count], Integer.parseInt(reservations[count+1]));
-                }else if(type.equals("room")){
-                    roomResourceManager.cancelRoom(id, customerID, reservations[count], Integer.parseInt(reservations[count+1]));
-                }else{
-                    flightResourceManager.cancelFlight(id, customerID, reservations[count], Integer.parseInt(reservations[count+1]));
-                }
-                count +=2;
+                    while (count < reservations.length) {
+                        String type = reservations[count].split("-")[0];
+                        if (type.equals("car")) {
+                            carResourceManager.cancelCar(id, customerID, reservations[count], Integer.parseInt(reservations[count + 1]));
+                        } else if (type.equals("room")) {
+                            roomResourceManager.cancelRoom(id, customerID, reservations[count], Integer.parseInt(reservations[count + 1]));
+                        } else {
+                             flightResourceManager.cancelFlight(id, customerID, reservations[count], Integer.parseInt(reservations[count + 1]));
+                        }
+                        count += 2;
+                    }
             }
             return true;
         }
@@ -143,7 +145,7 @@ public class MiddlewareResourceManager implements IResourceManager {
 
     @Override
     public boolean reserveFlight(int id, int customerID, int flightNumber) throws RemoteException {
-        boolean customerExists = customerResourceManager.queryCustomerInfo(id, customerID).equals("");
+        boolean customerExists = !customerResourceManager.queryCustomerInfo(id, customerID).equals("");
         if (!customerExists) return false;
 
         boolean successFlight = flightResourceManager.reserveFlight(id, customerID, flightNumber);
@@ -157,7 +159,7 @@ public class MiddlewareResourceManager implements IResourceManager {
 
     @Override
     public boolean reserveCar(int id, int customerID, String location) throws RemoteException {
-        boolean customerExists = customerResourceManager.queryCustomerInfo(id, customerID).equals("");
+        boolean customerExists = !customerResourceManager.queryCustomerInfo(id, customerID).equals("");
         if (!customerExists) return false;
 
         boolean successCar = carResourceManager.reserveCar(id, customerID, location);
@@ -171,7 +173,7 @@ public class MiddlewareResourceManager implements IResourceManager {
 
     @Override
     public boolean reserveRoom(int id, int customerID, String location) throws RemoteException {
-        boolean customerExists = customerResourceManager.queryCustomerInfo(id, customerID).equals("");
+        boolean customerExists = !customerResourceManager.queryCustomerInfo(id, customerID).equals("");
         if (!customerExists) return false;
 
         boolean successRoom = roomResourceManager.reserveRoom(id, customerID, location);

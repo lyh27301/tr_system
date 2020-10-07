@@ -72,16 +72,13 @@ public class CustomerResourceManager extends BasicResourceManager implements ICu
                 else{
                     items = items + ","+reservedKey + "," +reserveditem.getCount();
                 }
-//                ReservableItem item  = (ReservableItem)readData(xid, reserveditem.getKey());
-//                Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") has reserved " + reserveditem.getKey() + " which is reserved " +  item.getReserved() +  " times and is still available " + item.getCount() + " times");
-//                item.setReserved(item.getReserved() - reserveditem.getCount());
-//                item.setCount(item.getCount() + reserveditem.getCount());
-//                writeData(xid, item.getKey(), item);
+
             }
 
             // Remove the customer from the storage
             removeData(xid, customer.getKey());
             Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") succeeded");
+            if (reservations.keySet().size()==0) items = "None";
             return items ;
         }
     }
@@ -118,22 +115,6 @@ public class CustomerResourceManager extends BasicResourceManager implements ICu
         return true;
     }
 
-    public List<ReservedItem> getReservedItems(int xid, int customerID)
-    {
-        Trace.info("RM::queryCustomerInfo(" + xid + ", " + customerID + ") called");
-        Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
-        if (customer == null)
-        {
-            Trace.warn("RM::queryCustomerInfo(" + xid + ", " + customerID + ") failed--customer doesn't exist");
-            // NOTE: don't change this--WC counts on this value indicating a customer does not exist...
-            return new ArrayList<ReservedItem>();
-        }
-        else
-        {
-            Trace.info("RM::queryCustomerInfo(" + xid + ", " + customerID + ")");
-            return customer.getReservedItems();
-        }
-    }
 
 
 }

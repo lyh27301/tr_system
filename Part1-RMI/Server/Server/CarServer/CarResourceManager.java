@@ -69,5 +69,11 @@ public class CarResourceManager extends BasicResourceManager implements ICarMana
 		return true;
 	}
 
+	// Adds car reservation
+	public boolean reserveCar(int xid, int customerID, String location) throws RemoteException
+	{
+		return reserveItem(xid, customerID, Car.getKey(location), location);
+	}
+
 }
  

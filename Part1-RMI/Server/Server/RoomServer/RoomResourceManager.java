@@ -1,6 +1,7 @@
 package Server.RoomServer;
 
 import Server.Common.BasicResourceManager;
+import Server.Common.Car;
 import Server.Common.Room;
 import Server.Common.Trace;
 import Server.Interface.IRoomManager;
@@ -66,5 +67,6 @@ public class RoomResourceManager extends BasicResourceManager implements IRoomMa
         cancelReservation(xid,customerID,key,count);
         return true;
     }
+
 
 }

@@ -45,6 +45,7 @@ public interface IFlightManager extends Remote {
     public int queryFlightPrice(int id, int flightNumber)
             throws RemoteException;
 
+    public boolean reserveFlight(int xid, int customerID, int flightNum) throws RemoteException;
 
     public boolean cancelFlight(int xid, int customerID, String key, int count) throws RemoteException;
 }

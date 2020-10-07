@@ -65,7 +65,7 @@ public class FlightResourceManager extends BasicResourceManager implements IFlig
         return reserveItem(xid, customerID, Flight.getKey(flightNum), String.valueOf(flightNum));
     }
 
-    public boolean cancelFlight(int xid, int customerID, String key, int count){
+    public boolean cancelFlight(int xid, int customerID, String key, int count) throws RemoteException{
         cancelReservation(xid,customerID,key,count);
         return true;
     }

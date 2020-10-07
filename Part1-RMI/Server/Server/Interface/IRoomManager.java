@@ -45,4 +45,12 @@ public interface IRoomManager extends Remote {
 
     public boolean cancelRoom(int xid, int customerID, String key, int count)
             throws RemoteException;
+
+    /**
+     * Reserve a room at this location.
+     *
+     * @return Success
+     */
+    public boolean reserveRoom(int id, int customerID, String location)
+            throws RemoteException;
 }
