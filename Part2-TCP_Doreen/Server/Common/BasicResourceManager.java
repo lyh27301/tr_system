@@ -3,8 +3,8 @@
 package Server.Common;
 
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
@@ -14,10 +14,10 @@ public abstract class BasicResourceManager extends Thread {
 	protected RMHashMap m_data = new RMHashMap();
 
 	final Socket clientSocket;
-	final DataInputStream inputStream;
-	final DataOutputStream outputStream;
+	final ObjectInputStream inputStream;
+	final ObjectOutputStream outputStream;
 
-	public BasicResourceManager(String p_name, Socket clientSocket, DataInputStream inputStream, DataOutputStream outputStream)
+	public BasicResourceManager(String p_name, Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream)
 	{
 		this.m_name = p_name;
 		this.inputStream = inputStream;
@@ -29,19 +29,19 @@ public abstract class BasicResourceManager extends Thread {
 	public void run(){
 		while(true){
 			try {
-				String received = inputStream.readUTF();
+				String received = ((Message)inputStream.readObject()).getMessageText();
 
 				String[] parsed = received.split(",");
 
 				if (parsed[0].equals("Quit")){
-					outputStream.writeUTF("Quit Received");
+					outputStream.writeObject(new Message("Quit Received"));
 					Trace.info("Quitting a client connection...");
 					break;
 				}
 
 				String response = executeRequest(parsed);
-				outputStream.writeUTF(response);
-			}catch (IOException e) {
+				outputStream.writeObject(new Message(response));
+			}catch (IOException | ClassNotFoundException e) {
 				e.printStackTrace();
 				break;
 			}

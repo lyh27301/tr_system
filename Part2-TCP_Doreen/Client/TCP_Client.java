@@ -1,5 +1,6 @@
 package Client;
 
+import Server.Common.Message;
 import Server.Common.Trace;
 import java.io.*;
 import java.net.InetAddress;
@@ -19,8 +20,9 @@ public class TCP_Client {
         InetAddress ip = InetAddress.getByName(middlewareHost);
         Socket s = new Socket(ip, middlewarePort);
 
-        DataInputStream inputStream = new DataInputStream(s.getInputStream());
-        DataOutputStream outputStream = new DataOutputStream(s.getOutputStream());
+        ObjectInputStream inputStream = new ObjectInputStream(s.getInputStream());
+        ObjectOutputStream outputStream = new ObjectOutputStream(s.getOutputStream());
+        outputStream.flush();
 
         // Prepare for reading commands
         System.out.println();
@@ -57,16 +59,16 @@ public class TCP_Client {
                 }
                 continue;
             }
-            outputStream.writeUTF(command);
+            outputStream.writeObject(new Message(command));
 
             if(parsed[0].equals("Quit")){
-                outputStream.writeUTF(command);
-                String quitAck = inputStream.readUTF();
+                outputStream.writeObject(new Message(command));
+                String quitAck = ((Message)inputStream.readObject()).getMessageText();
                 System.out.println(quitAck);
                 break;
             }
 
-            String response = inputStream.readUTF();
+            String response = ((Message)inputStream.readObject()).getMessageText();
             System.out.println(response);
 
         }

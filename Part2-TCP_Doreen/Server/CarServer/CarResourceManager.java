@@ -5,14 +5,14 @@ import Server.Common.BasicResourceManager;
 import Server.Common.Car;
 import Server.Common.Trace;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 
 public class CarResourceManager extends BasicResourceManager {
 
-	public CarResourceManager(Socket clientSocket, DataInputStream inputStream, DataOutputStream outputStream)
+	public CarResourceManager(Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream)
 	{
 		super("CarResourceManager", clientSocket, inputStream, outputStream);
 	}

@@ -1,12 +1,9 @@
 package Server.MiddlewareServer;
 
-import Server.Common.Car;
-import Server.Common.Flight;
-import Server.Common.Room;
-import Server.Common.Trace;
+import Server.Common.*;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -17,8 +14,8 @@ public class MiddlewareClientHandler extends Thread {
 
     //connection to the client
     final Socket clientSocket;
-    final DataInputStream clientInputStream;
-    final DataOutputStream clientOutputStream;
+    final ObjectInputStream clientInputStream;
+    final ObjectOutputStream clientOutputStream;
 
 
     enum ServerType {CAR, FLIGHT, ROOM, CUSTOMER}
@@ -38,25 +35,25 @@ public class MiddlewareClientHandler extends Thread {
 
     //connections
     Socket carSocket;
-    DataInputStream carInputStream;
-    DataOutputStream carOutputStream;
+    ObjectInputStream carInputStream;
+    ObjectOutputStream carOutputStream;
 
     Socket flightSocket;
-    DataInputStream flightInputStream;
-    DataOutputStream flightOutputStream;
+    ObjectInputStream flightInputStream;
+    ObjectOutputStream flightOutputStream;
 
     Socket roomSocket;
-    DataInputStream roomInputStream;
-    DataOutputStream roomOutputStream;
+    ObjectInputStream roomInputStream;
+    ObjectOutputStream roomOutputStream;
 
     Socket customerSocket;
-    DataInputStream customerInputStream;
-    DataOutputStream customerOutputStream;
+    ObjectInputStream customerInputStream;
+    ObjectOutputStream customerOutputStream;
 
 
     public MiddlewareClientHandler(Socket clientSocket,
-                                   DataInputStream inputStream,
-                                   DataOutputStream outputStream,
+                                   ObjectInputStream inputStream,
+                                   ObjectOutputStream outputStream,
                                    String carServerHost,
                                    String flightServerHost,
                                    String roomServerHost,
@@ -82,7 +79,8 @@ public class MiddlewareClientHandler extends Thread {
         while (true) {
             try {
                 // receive client request
-                String receivedFromClient = clientInputStream.readUTF();
+                String receivedFromClient = ((Message)clientInputStream.readObject()).getMessageText();
+
 
                 String[] parsed = receivedFromClient.split(",");
 
@@ -101,7 +99,7 @@ public class MiddlewareClientHandler extends Thread {
                         Trace.info("Quitting the customer server connection in a thread...");
                     }
 
-                    clientOutputStream.writeUTF("Good Bye");
+                    clientOutputStream.writeObject(new Message("Good Bye"));
                     break;
                 }
 
@@ -109,35 +107,35 @@ public class MiddlewareClientHandler extends Thread {
                 else if (command.equals("AddCars") || command.equals("DeleteCars") || command.equals("QueryCars")
                         || command.equals("QueryCarsPrice")) {
                     String response = executeRequestInResourceManager(ServerType.CAR, receivedFromClient);
-                    clientOutputStream.writeUTF(response);
+                    clientOutputStream.writeObject(new Message(response));
                 }
                 else if (command.equals("AddFlight") || command.equals("DeleteFlight") || command.equals("QueryFlight")
                         || command.equals("QueryFlightPrice") ) {
                     String response = executeRequestInResourceManager(ServerType.FLIGHT, receivedFromClient);
-                    clientOutputStream.writeUTF(response);
+                    clientOutputStream.writeObject(new Message(response));
                 }
                 else if (command.equals("AddRooms") || command.equals("DeleteRooms") || command.equals("QueryRooms")
                         || command.equals("QueryRoomsPrice") ) {
                     String response = executeRequestInResourceManager(ServerType.ROOM, receivedFromClient);
-                    clientOutputStream.writeUTF(response);
+                    clientOutputStream.writeObject(new Message(response));
                 }
                 else if (command.equals("AddCustomer") || command.equals("AddCustomerID")
                         || command.equals("QueryCustomer")) {
                     String response = executeRequestInResourceManager(ServerType.CUSTOMER, receivedFromClient);
-                    clientOutputStream.writeUTF(response);
+                    clientOutputStream.writeObject(new Message(response));
                 }
                 else if(command.equals("ReserveRoom")){
                     if(checkCustomerExists(Integer.parseInt(parsed[1]),Integer.parseInt(parsed[2]))){
                         String response = executeRequestInResourceManager(ServerType.ROOM, receivedFromClient);
                         if(response.equals("false")){
-                            clientOutputStream.writeUTF("Room could not be reserved");
+                            clientOutputStream.writeObject(new Message("Room could not be reserved"));
                         }else{
                             String request = "ReserveItem,"+parsed[1]+","+parsed[2]+","+Room.getKey(parsed[3])+","+parsed[3]+","+Integer.valueOf(response);
                             response = executeRequestInResourceManager(ServerType.CUSTOMER, request);
-                            clientOutputStream.writeUTF(response);
+                            clientOutputStream.writeObject(new Message(response));
                         }
                     }else{
-                        clientOutputStream.writeUTF("Failed-Customer does not exists");
+                        clientOutputStream.writeObject(new Message("Failed-Customer does not exists"));
                     }
 
                 }
@@ -145,38 +143,38 @@ public class MiddlewareClientHandler extends Thread {
                     if(checkCustomerExists(Integer.parseInt(parsed[1]),Integer.parseInt(parsed[2]))){
                         String response = executeRequestInResourceManager(ServerType.FLIGHT, receivedFromClient);
                         if(response.equals("false")){
-                            clientOutputStream.writeUTF("Flight could not be reserved");
+                            clientOutputStream.writeObject(new Message("Flight could not be reserved"));
                         }else{
                             String request = "ReserveItem,"+parsed[1]+","+parsed[2]+","+ Flight.getKey(Integer.parseInt(parsed[3]))+","+parsed[3]+","+Integer.valueOf(response);
                             response = executeRequestInResourceManager(ServerType.CUSTOMER, request);
-                            clientOutputStream.writeUTF(response);
+                            clientOutputStream.writeObject(new Message(response));
                         }
                     }else{
-                        clientOutputStream.writeUTF("Failed-Customer does not exists");
+                        clientOutputStream.writeObject(new Message("Failed-Customer does not exists"));
                     }
                 }
                 else if( command.equals("ReserveCar")){
                     if(checkCustomerExists(Integer.parseInt(parsed[1]),Integer.parseInt(parsed[2]))){
                         String response = executeRequestInResourceManager(ServerType.CAR, receivedFromClient);
                         if(response.equals("false")){
-                            clientOutputStream.writeUTF("Car could not be reserved");
+                            clientOutputStream.writeObject(new Message("Car could not be reserved"));
                         }else{
                             String request = "ReserveItem,"+parsed[1]+","+parsed[2]+","+ Car.getKey(parsed[3])+","+parsed[3]+","+Integer.valueOf(response);
                             response = executeRequestInResourceManager(ServerType.CUSTOMER, request);
-                            clientOutputStream.writeUTF(response);
+                            clientOutputStream.writeObject(new Message(response));
                         }
                     }else{
-                        clientOutputStream.writeUTF("Failed-Customer does not exists");
+                        clientOutputStream.writeObject(new Message("Failed-Customer does not exists"));
                     }
 
                 }
                 else if (command.equals("DeleteCustomer")){
                     String response = executeRequestInResourceManager(ServerType.CUSTOMER, receivedFromClient);
                     if(response.equals("false")){
-                        clientOutputStream.writeUTF("Failed-Customer does not exists");
+                        clientOutputStream.writeObject(new Message("Failed-Customer does not exists"));
                     }
                     else if(response.equals("")){
-                        clientOutputStream.writeUTF(("Customer does not any reservation and was deleted successfully."));
+                        clientOutputStream.writeObject(new Message("Customer does not any reservation and was deleted successfully."));
                     }
                     else{
                         String[] reservations = response.split(",");
@@ -195,18 +193,18 @@ public class MiddlewareClientHandler extends Thread {
                             }
                             count +=2;
                         }
-                        clientOutputStream.writeUTF("Customer was deleted and all his/her reservations were canceled");
+                        clientOutputStream.writeObject(new Message("Customer was deleted and all his/her reservations were canceled"));
                     }
                 }
                 else if (command.equals("Bundle")) {
                     String response = executeBundleSendBackToClient(receivedFromClient);
-                    clientOutputStream.writeUTF(response);
+                    clientOutputStream.writeObject(new Message(response));
                 }
                 else {
-                    clientOutputStream.writeUTF("Unsupported command! Please check the user guide!");
+                    clientOutputStream.writeObject(new Message("Unsupported command! Please check the user guide!"));
                 }
 
-            } catch (IOException e) {
+            } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
         }
@@ -237,7 +235,7 @@ public class MiddlewareClientHandler extends Thread {
         }
 
     }
-    private boolean checkCustomerExists(int xid, int customerID) throws IOException {
+    private boolean checkCustomerExists(int xid, int customerID) throws IOException, ClassNotFoundException {
         String checkCustomer = String.format("QueryCustomer,%d,%d",xid,customerID);
         String response = executeRequestInResourceManager(ServerType.CUSTOMER, checkCustomer);
         if(response.equals("")){
@@ -246,24 +244,24 @@ public class MiddlewareClientHandler extends Thread {
         return true;
     }
 
-    private String executeRequestInResourceManager (ServerType serverType, String message) throws IOException {
+    private String executeRequestInResourceManager (ServerType serverType, String message) throws IOException, ClassNotFoundException {
         String response ="";
         switch (serverType) {
             case CAR:
-                this.carOutputStream.writeUTF(message);
-                response = carInputStream.readUTF();
+                this.carOutputStream.writeObject(new Message(message));
+                response = ((Message)carInputStream.readObject()).getMessageText();
                 break;
             case FLIGHT:
-                this.flightOutputStream.writeUTF(message);
-                response = flightInputStream.readUTF();
+                this.flightOutputStream.writeObject(new Message(message));
+                response = ((Message)flightInputStream.readObject()).getMessageText();
                 break;
             case ROOM:
-                this.roomOutputStream.writeUTF(message);
-                response = roomInputStream.readUTF();
+                this.roomOutputStream.writeObject(new Message(message));
+                response = ((Message)roomInputStream.readObject()).getMessageText();
                 break;
             case CUSTOMER:
-                this.customerOutputStream.writeUTF(message);
-                response = customerInputStream.readUTF();
+                this.customerOutputStream.writeObject(new Message(message));
+                response = ((Message)customerInputStream.readObject()).getMessageText();
                 break;
         }
         return response;
@@ -271,7 +269,7 @@ public class MiddlewareClientHandler extends Thread {
 
 
 
-    public String executeBundleSendBackToClient(String receivedFromClient) throws IOException {
+    public String executeBundleSendBackToClient(String receivedFromClient) throws IOException, ClassNotFoundException {
 
         String response = "";
         String failMessage = "";
@@ -396,26 +394,30 @@ public class MiddlewareClientHandler extends Thread {
                 case CAR:
                     InetAddress carIp = InetAddress.getByName(carServerHost);
                     this.carSocket = new Socket(carIp, carServerPort);
-                    this.carInputStream = new DataInputStream(this.carSocket.getInputStream());
-                    this.carOutputStream = new DataOutputStream(this.carSocket.getOutputStream());
+                    this.carInputStream = new ObjectInputStream(this.carSocket.getInputStream());
+                    this.carOutputStream = new ObjectOutputStream(this.carSocket.getOutputStream());
+                    this.carOutputStream.flush();
                     break;
                 case FLIGHT:
                     InetAddress flightIp = InetAddress.getByName(flightServerHost);
                     this.flightSocket = new Socket(flightIp, flightServerPort);
-                    this.flightInputStream = new DataInputStream(this.flightSocket.getInputStream());
-                    this.flightOutputStream = new DataOutputStream(this.flightSocket.getOutputStream());
+                    this.flightInputStream = new ObjectInputStream(this.flightSocket.getInputStream());
+                    this.flightOutputStream = new ObjectOutputStream(this.flightSocket.getOutputStream());
+                    this.flightOutputStream.flush();
                     break;
                 case ROOM:
                     InetAddress roomIp = InetAddress.getByName(roomServerHost);
                     this.roomSocket = new Socket(roomIp, roomServerPort);
-                    this.roomInputStream = new DataInputStream(this.roomSocket.getInputStream());
-                    this.roomOutputStream = new DataOutputStream(this.roomSocket.getOutputStream());
+                    this.roomInputStream = new ObjectInputStream(this.roomSocket.getInputStream());
+                    this.roomOutputStream = new ObjectOutputStream(this.roomSocket.getOutputStream());
+                    this.roomOutputStream.flush();
                     break;
                 case CUSTOMER:
                     InetAddress customerIp = InetAddress.getByName(customerServerHost);
                     this.customerSocket = new Socket(customerIp, customerServerPort);
-                    this.customerInputStream = new DataInputStream(this.customerSocket.getInputStream());
-                    this.customerOutputStream = new DataOutputStream(this.customerSocket.getOutputStream());
+                    this.customerInputStream = new ObjectInputStream(this.customerSocket.getInputStream());
+                    this.customerOutputStream = new ObjectOutputStream(this.customerSocket.getOutputStream());
+                    this.customerOutputStream.flush();
                     break;
             }
             System.out.println("connect server "+serverType.name()+" server.");

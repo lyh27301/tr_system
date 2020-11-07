@@ -2,14 +2,14 @@ package Server.CustomerServer;
 
 import Server.Common.*;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Calendar;
 
 public class CustomerResourceManager extends BasicResourceManager {
 
-    public CustomerResourceManager(Socket clientSocket, DataInputStream inputStream, DataOutputStream outputStream)
+    public CustomerResourceManager(Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream)
     {
         super("CustomerResourceManager", clientSocket, inputStream, outputStream);
     }

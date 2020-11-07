@@ -3,8 +3,8 @@ package Server.MiddlewareServer;
 
 import Server.Common.Trace;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -36,9 +36,9 @@ public class MiddlewareServer {
             try{
                 clientSocket = serverSocket.accept();
                 Trace.info("A new client is connected");
-
-                DataInputStream inputStream = new DataInputStream(clientSocket.getInputStream());
-                DataOutputStream outputStream = new DataOutputStream(clientSocket.getOutputStream());
+                ObjectOutputStream outputStream = new ObjectOutputStream(clientSocket.getOutputStream());
+                ObjectInputStream inputStream = new ObjectInputStream(clientSocket.getInputStream());
+                outputStream.flush();
                 Thread t = new MiddlewareClientHandler(clientSocket, inputStream, outputStream,
                         carServerHost, flightServerHost, roomServerHost, customerServerHost);
                 t.start();

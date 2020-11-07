@@ -4,14 +4,14 @@ import Server.Common.BasicResourceManager;
 import Server.Common.Flight;
 import Server.Common.Trace;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 
 public class FlightResourceManager extends BasicResourceManager {
 
-    public FlightResourceManager(Socket clientSocket, DataInputStream inputStream, DataOutputStream outputStream)
+    public FlightResourceManager(Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream)
     {
         super("FlightResourceManager", clientSocket, inputStream, outputStream);
     }

@@ -4,14 +4,14 @@ import Server.Common.BasicResourceManager;
 import Server.Common.Room;
 import Server.Common.Trace;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.rmi.RemoteException;
 
 public class RoomResourceManager extends BasicResourceManager {
 
-    public RoomResourceManager(Socket clientSocket, DataInputStream inputStream, DataOutputStream outputStream)
+    public RoomResourceManager(Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream)
     {
         super("RoomResourceManager", clientSocket, inputStream, outputStream);
     }

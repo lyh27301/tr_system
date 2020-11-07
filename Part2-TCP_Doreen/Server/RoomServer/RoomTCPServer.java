@@ -2,8 +2,8 @@ package Server.RoomServer;
 
 import Server.Common.Trace;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -20,9 +20,10 @@ public class RoomTCPServer {
             try{
                 clientSocket = serverSocket.accept();
                 Trace.info("A new client is connected");
+                ObjectOutputStream outputStream = new ObjectOutputStream(clientSocket.getOutputStream());
+                ObjectInputStream inputStream = new ObjectInputStream(clientSocket.getInputStream());
 
-                DataInputStream inputStream = new DataInputStream(clientSocket.getInputStream());
-                DataOutputStream outputStream = new DataOutputStream(clientSocket.getOutputStream());
+                outputStream.flush();
 
                 Thread t = new RoomResourceManager(clientSocket, inputStream, outputStream);
                 t.start();
