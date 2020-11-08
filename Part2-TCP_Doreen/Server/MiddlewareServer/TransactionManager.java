@@ -12,10 +12,16 @@ import java.util.HashMap;
 public class TransactionManager {
     private HashMap<Integer, Transaction> allTransactions = new HashMap<>();
     private LockManager lockManager = new LockManager();
+    private int idCounter = 0;
 
-    public void createNewTransaction(int xid) {
+
+
+    public int createNewTransaction() {
+        int xid = idCounter + 1;
+        idCounter++;
         Transaction transaction = new Transaction(xid);
         allTransactions.put(xid, transaction);
+        return xid;
     }
 
     public boolean existsTransaction(int xid){

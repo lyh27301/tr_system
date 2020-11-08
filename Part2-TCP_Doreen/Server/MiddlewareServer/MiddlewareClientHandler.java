@@ -9,7 +9,6 @@ import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -130,8 +129,14 @@ public class MiddlewareClientHandler extends Thread {
                 }
                 */
 
-                else if (command.equals("Start")){
-                    startTransaction(Integer.parseInt(parsed[1]));
+
+                if (command.equals("Start")){
+                    int xid = startTransaction();
+                    clientOutputStream.writeObject(new Message("Transaction-"+ xid + " has started"));
+                }
+
+                else if (!transactionManager.existsTransaction(Integer.parseInt(parsed[1]))) {
+                    clientOutputStream.writeObject(new Message("Transaction-"+ parsed[1] + " hasn't been created yet."));
                 }
 
                 else if (command.equals("Commit")){
@@ -158,7 +163,6 @@ public class MiddlewareClientHandler extends Thread {
                     TransactionLockObject.LockType lockType = (command.equals("AddCars") || command.equals("DeleteCars"))?
                             TransactionLockObject.LockType.LOCK_WRITE: TransactionLockObject.LockType.LOCK_READ;
                     beforeOperation (Integer.parseInt(parsed[1]), "car-"+parsed[2], lockType);
-
                     String response = executeRequestInResourceManager(ServerType.CAR, receivedFromClient);
                     clientOutputStream.writeObject(new Message(response));
                 }
@@ -275,10 +279,8 @@ public class MiddlewareClientHandler extends Thread {
                     clientOutputStream.writeObject(new Message("Unsupported command! Please check the user guide!"));
                 }
 
-            } catch (IOException | ClassNotFoundException e) {
+            } catch (IOException | ClassNotFoundException | InvalidTransactionException e) {
                 e.printStackTrace();
-            } catch (InvalidTransactionException e) {
-                Trace.error(e.getMessage());
             }
         }
         try {
@@ -566,35 +568,27 @@ public class MiddlewareClientHandler extends Thread {
         }
     }
 
-    public void startTransaction(int xid) throws IOException {
-        if (!transactionManager.existsTransaction(xid)){
-            transactionManager.createNewTransaction(xid);
-            clientOutputStream.writeObject(new Message("Transaction-"+ xid + " has started"));
-        }else {
-            clientOutputStream.writeObject(new Message("Transaction-"+ xid + " already exists"));
-        }
+    public int startTransaction() throws IOException {
+        int xid = transactionManager.createNewTransaction();
+        return xid;
     }
 
 
 
-    public void beforeOperation (int xid, String key, TransactionLockObject.LockType lockType) throws InvalidTransactionException {
+    public void beforeOperation (int xid, String key, TransactionLockObject.LockType lockType) throws IOException, InvalidTransactionException {
+
         try {
-            if (!transactionManager.aquireLock(xid, key, lockType)){
-                throw new InvalidTransactionException(xid, "Faile to aquire lock");
+            if (!transactionManager.aquireLock(xid, key, lockType)) {
+                throw new InvalidTransactionException(xid, "Failed to aquire lock. Invalid Parameters.");
             }
         } catch (DeadlockException e) {
             Trace.warn("Deadlock on object (" + key + ")");
             abort(xid);
         }
 
-        // transaction never exists before
-        if (!transactionManager.existsTransaction(xid)){
-            transactionManager.createNewTransaction(xid);
-        }
-
-        if (!transactionManager.containsData(xid, key)){
+        if (!transactionManager.containsData(xid, key)) {
             try {
-                RMItem objectData = readRemoteObject (xid, key);
+                RMItem objectData = readRemoteObject(xid, key);
                 transactionManager.addBeforeImage(xid, key, objectData);
             } catch (IOException e) {
                 Trace.error("I/O exception while getting remote object data.");
@@ -602,8 +596,6 @@ public class MiddlewareClientHandler extends Thread {
                 Trace.error(e.getMessage());
             }
         }
-
-
     }
 
     public boolean abort(int xid) throws InvalidTransactionException {
