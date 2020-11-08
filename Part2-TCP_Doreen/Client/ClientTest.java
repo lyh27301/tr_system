@@ -19,11 +19,9 @@ public class ClientTest implements Runnable{
     public long[] times = new long[50];
     public static void main (String[] args) throws Exception{
 
-        //String middlewareHost = "localhost";
         if (args.length > 0) middlewareHost = args[0];
 
         long startTime = 5*1000 + System.currentTimeMillis();
-        // Get a reference to the RMIRegister
         try {
             ClientTest[] c = new ClientTest[numberOfClients];
             Thread[] thread = new Thread[numberOfClients];
