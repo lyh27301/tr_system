@@ -1,6 +1,8 @@
 package Server.MiddlewareServer;
 
 import Server.Common.*;
+import Server.LockManager.DeadlockException;
+import Server.LockManager.TransactionLockObject;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -9,6 +11,8 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MiddlewareClientHandler extends Thread {
 
@@ -50,6 +54,8 @@ public class MiddlewareClientHandler extends Thread {
     ObjectInputStream customerInputStream;
     ObjectOutputStream customerOutputStream;
 
+    TransactionManager transactionManager;
+
 
     public MiddlewareClientHandler(Socket clientSocket,
                                    ObjectInputStream inputStream,
@@ -57,7 +63,8 @@ public class MiddlewareClientHandler extends Thread {
                                    String carServerHost,
                                    String flightServerHost,
                                    String roomServerHost,
-                                   String customerServerHost) {
+                                   String customerServerHost,
+                                   TransactionManager transactionManager) {
 
         this.clientInputStream = inputStream;
         this.clientOutputStream = outputStream;
@@ -72,6 +79,8 @@ public class MiddlewareClientHandler extends Thread {
         connectToServer(ServerType.FLIGHT);
         connectToServer(ServerType.ROOM);
         connectToServer(ServerType.CUSTOMER);
+
+        this.transactionManager = transactionManager;
     }
 
     @Override
@@ -83,8 +92,9 @@ public class MiddlewareClientHandler extends Thread {
 
 
                 String[] parsed = receivedFromClient.split(",");
-
                 String command = parsed[0];
+
+
                 if (command.equals("Quit")) {
                     if (executeRequestInResourceManager(ServerType.CAR, receivedFromClient).equals("Quit Received")){
                         Trace.info("Quitting the car server connection in a thread...");
@@ -103,27 +113,88 @@ public class MiddlewareClientHandler extends Thread {
                     break;
                 }
 
+                //Don't remove this for now. Use it for debugging
+                /*
+                 else if (command.equals("ReadRemote")){
+                    Car car =  (Car) readRemoteObject (1, "car-montreal");
+                    String s = car!=null? car.toString(): "null";
+
+                    Trace.info("Get remote object "+ s);
+                    clientOutputStream.writeObject(new Message("Get remote object "+ s));
+                }
+
+                else if (command.equals("WriteRemote")){
+                    Car car = new Car("montreal", 15, 500);
+                    writeRemoteObject (1, "car-montreal", car);
+                    clientOutputStream.writeObject(new Message("write successful"));
+                }
+                */
+
+                else if (command.equals("Start")){
+                    startTransaction(Integer.parseInt(parsed[1]));
+                }
+
+                else if (command.equals("Commit")){
+                    if (commit(Integer.parseInt(parsed[1]))){
+                        clientOutputStream.writeObject(new Message("Transaction-"+ parsed[1] + " is committed"));
+                    }else{
+                        clientOutputStream.writeObject(new Message("Failed to commit Transaction-"+ parsed[1]));
+                    }
+                }
+
+                else if (command.equals("Abort")){
+                    if (abort(Integer.parseInt(parsed[1]))){
+                        clientOutputStream.writeObject(new Message("Transaction-"+ parsed[1] + " is aborted"));
+                    }else{
+                        clientOutputStream.writeObject(new Message("Failed to abort Transaction-"+ parsed[1]));
+                    }
+
+                }
+
                 //Choose the responsible service
                 else if (command.equals("AddCars") || command.equals("DeleteCars") || command.equals("QueryCars")
                         || command.equals("QueryCarsPrice")) {
+
+                    TransactionLockObject.LockType lockType = (command.equals("AddCars") || command.equals("DeleteCars"))?
+                            TransactionLockObject.LockType.LOCK_WRITE: TransactionLockObject.LockType.LOCK_READ;
+                    beforeOperation (Integer.parseInt(parsed[1]), "car-"+parsed[2], lockType);
+
                     String response = executeRequestInResourceManager(ServerType.CAR, receivedFromClient);
                     clientOutputStream.writeObject(new Message(response));
                 }
+
                 else if (command.equals("AddFlight") || command.equals("DeleteFlight") || command.equals("QueryFlight")
                         || command.equals("QueryFlightPrice") ) {
+
+                    TransactionLockObject.LockType lockType = (command.equals("AddFlight") || command.equals("DeleteFlight"))?
+                            TransactionLockObject.LockType.LOCK_WRITE: TransactionLockObject.LockType.LOCK_READ;
+                    beforeOperation (Integer.parseInt(parsed[1]), "flight-"+parsed[2], lockType);
+
                     String response = executeRequestInResourceManager(ServerType.FLIGHT, receivedFromClient);
                     clientOutputStream.writeObject(new Message(response));
                 }
+
                 else if (command.equals("AddRooms") || command.equals("DeleteRooms") || command.equals("QueryRooms")
                         || command.equals("QueryRoomsPrice") ) {
+
+                    TransactionLockObject.LockType lockType = (command.equals("AddRooms") || command.equals("DeleteRooms"))?
+                            TransactionLockObject.LockType.LOCK_WRITE: TransactionLockObject.LockType.LOCK_READ;
+                    beforeOperation (Integer.parseInt(parsed[1]), "room-"+parsed[2], lockType);
+
                     String response = executeRequestInResourceManager(ServerType.ROOM, receivedFromClient);
                     clientOutputStream.writeObject(new Message(response));
                 }
                 else if (command.equals("AddCustomer") || command.equals("AddCustomerID")
                         || command.equals("QueryCustomer")) {
+
+                    TransactionLockObject.LockType lockType = (command.equals("AddCustomer") || command.equals("AddCustomerID"))?
+                            TransactionLockObject.LockType.LOCK_WRITE: TransactionLockObject.LockType.LOCK_READ;
+                    beforeOperation (Integer.parseInt(parsed[1]), "customer-"+parsed[2], lockType);
+
                     String response = executeRequestInResourceManager(ServerType.CUSTOMER, receivedFromClient);
                     clientOutputStream.writeObject(new Message(response));
                 }
+
                 else if(command.equals("ReserveRoom")){
                     if(checkCustomerExists(Integer.parseInt(parsed[1]),Integer.parseInt(parsed[2]))){
                         String response = executeRequestInResourceManager(ServerType.ROOM, receivedFromClient);
@@ -206,6 +277,8 @@ public class MiddlewareClientHandler extends Thread {
 
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
+            } catch (InvalidTransactionException e) {
+                Trace.error(e.getMessage());
             }
         }
         try {
@@ -267,9 +340,75 @@ public class MiddlewareClientHandler extends Thread {
         return response;
     }
 
+    public RMItem readRemoteObject (int xid, String key) throws IOException, ClassNotFoundException {
+        String[] parsed = key.split("-");
+        String message = "ReadObject,"+ xid + "," +key;
+
+        ObjectOutputStream outputStream = null;
+        ObjectInputStream inputStream = null;
+
+        if (parsed[0].equals("car")){
+            outputStream = this.carOutputStream;
+            inputStream = this.carInputStream;
+        }
+        if (parsed[0].equals("flight")){
+            outputStream = this.flightOutputStream;
+            inputStream = this.flightInputStream;
+        }
+        if (parsed[0].equals("room")){
+            outputStream = this.roomOutputStream;
+            inputStream = this.roomInputStream;
+        }
+        if (parsed[0].equals("customer")){
+            outputStream = this.customerOutputStream;
+            inputStream = this.customerInputStream;
+        }
+        if (outputStream!=null && inputStream!=null){
+            outputStream.writeObject(new Message(message));
+            RMItem object = (RMItem) inputStream.readObject();
+            return object;
+        }
+        return null;
+    }
+
+    public boolean writeRemoteObject (int xid, String key, RMItem objectToWrite) throws IOException, ClassNotFoundException{
+        String[] parsed = key.split("-");
+        String m = "WriteObject,"+ xid + "," +key;
+        Message message = new Message(m);
+        message.setMessageObject(objectToWrite);
+
+        ObjectOutputStream outputStream = null;
+        ObjectInputStream inputStream = null;
+
+        if (parsed[0].equals("car")){
+            outputStream = this.carOutputStream;
+            inputStream = this.carInputStream;
+        }
+        if (parsed[0].equals("flight")){
+            outputStream = this.flightOutputStream;
+            inputStream = this.flightInputStream;
+        }
+        if (parsed[0].equals("room")){
+            outputStream = this.roomOutputStream;
+            inputStream = this.roomInputStream;
+        }
+        if (parsed[0].equals("customer")){
+            outputStream = this.customerOutputStream;
+            inputStream = this.customerInputStream;
+        }
+
+        if (outputStream!=null && inputStream!=null){
+            outputStream.writeObject(message);
+            if (((Message)inputStream.readObject()).getMessageText().equals("SUCCESS")){
+                Trace.info("Write object ("+ key + ") successful");
+                return true;
+            }
+        }
+        return false;
+    }
 
 
-    public String executeBundleSendBackToClient(String receivedFromClient) throws IOException, ClassNotFoundException {
+    private String executeBundleSendBackToClient(String receivedFromClient) throws IOException, ClassNotFoundException {
 
         String response = "";
         String failMessage = "";
@@ -426,4 +565,74 @@ public class MiddlewareClientHandler extends Thread {
             e.printStackTrace();
         }
     }
+
+    public void startTransaction(int xid) throws IOException {
+        if (!transactionManager.existsTransaction(xid)){
+            transactionManager.createNewTransaction(xid);
+            clientOutputStream.writeObject(new Message("Transaction-"+ xid + " has started"));
+        }else {
+            clientOutputStream.writeObject(new Message("Transaction-"+ xid + " already exists"));
+        }
+    }
+
+
+
+    public void beforeOperation (int xid, String key, TransactionLockObject.LockType lockType) throws InvalidTransactionException {
+        try {
+            if (!transactionManager.aquireLock(xid, key, lockType)){
+                throw new InvalidTransactionException(xid, "Faile to aquire lock");
+            }
+        } catch (DeadlockException e) {
+            Trace.warn("Deadlock on object (" + key + ")");
+            abort(xid);
+        }
+
+        // transaction never exists before
+        if (!transactionManager.existsTransaction(xid)){
+            transactionManager.createNewTransaction(xid);
+        }
+
+        if (!transactionManager.containsData(xid, key)){
+            try {
+                RMItem objectData = readRemoteObject (xid, key);
+                transactionManager.addBeforeImage(xid, key, objectData);
+            } catch (IOException e) {
+                Trace.error("I/O exception while getting remote object data.");
+            } catch (ClassNotFoundException e) {
+                Trace.error(e.getMessage());
+            }
+        }
+
+
+    }
+
+    public boolean abort(int xid) throws InvalidTransactionException {
+        HashMap<String, RMItem> transactionHistory = transactionManager.getTransactionHistory(xid);
+
+        for (Map.Entry<String, RMItem> entry : transactionHistory.entrySet()) {
+            String key = entry.getKey();
+            RMItem value = entry.getValue();
+            try {
+                writeRemoteObject(xid, key, value);
+            } catch (Exception e) {
+                throw new InvalidTransactionException(xid, "Failed to undo operations on object (" + key + ")");
+            }
+        }
+
+        if (transactionManager.releaseLockAndRemoveTransaction (xid)) {
+            return true;
+        }else{
+            throw new InvalidTransactionException(xid, "Failed to release all locks held by Transaction-"+ xid);
+        }
+
+    }
+
+    public boolean commit(int xid) throws InvalidTransactionException {
+        if (transactionManager.releaseLockAndRemoveTransaction (xid)) {
+            return true;
+        }else{
+            throw new InvalidTransactionException(xid, "Failed to release all locks held by Transaction-"+ xid);
+        }
+    }
+
 }

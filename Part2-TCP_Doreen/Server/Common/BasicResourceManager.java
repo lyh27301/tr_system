@@ -29,7 +29,8 @@ public abstract class BasicResourceManager extends Thread {
 	public void run(){
 		while(true){
 			try {
-				String received = ((Message)inputStream.readObject()).getMessageText();
+				Message message = (Message)inputStream.readObject();
+				String received = message.getMessageText();
 
 				String[] parsed = received.split(",");
 
@@ -39,8 +40,24 @@ public abstract class BasicResourceManager extends Thread {
 					break;
 				}
 
-				String response = executeRequest(parsed);
-				outputStream.writeObject(new Message(response));
+				if (parsed[0].equals("ReadObject")){
+					Object obj = readData(stringToInt(parsed[1]), parsed[2]);
+					outputStream.writeObject(obj);
+					Trace.info("Return object with key "+ parsed[2]);
+				}
+
+				else if (parsed[0].equals("WriteObject")){
+					writeData(stringToInt(parsed[1]), parsed[2], message.getMessageObject());
+					outputStream.writeObject(new Message("SUCCESS"));
+					Trace.info("Successfully write object with key "+ parsed[2]);
+				}
+
+				else{
+					String response = executeRequest(parsed);
+					outputStream.writeObject(new Message(response));
+				}
+
+
 			}catch (IOException | ClassNotFoundException e) {
 				e.printStackTrace();
 				break;

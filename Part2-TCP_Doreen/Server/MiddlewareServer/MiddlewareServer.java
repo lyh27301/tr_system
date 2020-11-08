@@ -15,8 +15,9 @@ public class MiddlewareServer {
     static int port = 6116;
 
 
-    public static void main(String[] args) throws IOException {
 
+
+    public static void main(String[] args) throws IOException {
         //default hosts
         String carServerHost = "localhost";
         String flightServerHost = "localhost";
@@ -31,21 +32,28 @@ public class MiddlewareServer {
 
         ServerSocket serverSocket = new ServerSocket(port);
 
+        //Transaction Manager
+        TransactionManager transactionManager = new TransactionManager();
+
         while (true) {
             Socket clientSocket = null;
+            ObjectOutputStream outputStream = null;
+            ObjectInputStream inputStream = null;
             try{
                 clientSocket = serverSocket.accept();
                 Trace.info("A new client is connected");
-                ObjectOutputStream outputStream = new ObjectOutputStream(clientSocket.getOutputStream());
-                ObjectInputStream inputStream = new ObjectInputStream(clientSocket.getInputStream());
+                outputStream = new ObjectOutputStream(clientSocket.getOutputStream());
+                inputStream = new ObjectInputStream(clientSocket.getInputStream());
                 outputStream.flush();
                 Thread t = new MiddlewareClientHandler(clientSocket, inputStream, outputStream,
-                        carServerHost, flightServerHost, roomServerHost, customerServerHost);
+                        carServerHost, flightServerHost, roomServerHost, customerServerHost, transactionManager);
                 t.start();
 
             } catch (IOException e) {
                 clientSocket.close();
-                e.printStackTrace();
+                inputStream.close();
+                outputStream.close();
+                Trace.info("Client connection is closed.");
             }
         }
     }
