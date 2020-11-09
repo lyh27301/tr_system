@@ -4,7 +4,8 @@ import java.io.Serializable;
 
 public class Message implements Serializable {
     String messageText;
-    RMItem remoteObject;
+    Object remoteObject;
+
 
     public Message(String messageText) {
         this.messageText = messageText;
@@ -15,7 +16,7 @@ public class Message implements Serializable {
         return messageText;
     }
 
-    public RMItem getMessageObject() {
+    public Object getMessageObject() {
         return remoteObject;
     }
 
