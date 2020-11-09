@@ -47,7 +47,7 @@ public abstract class BasicResourceManager extends Thread {
 				}
 
 				else if (parsed[0].equals("WriteObject")){
-					writeData(stringToInt(parsed[1]), parsed[2], message.getMessageObject());
+					writeData(stringToInt(parsed[1]), parsed[2], (RMItem) message.getMessageObject());
 					outputStream.writeObject(new Message("SUCCESS"));
 					Trace.info("Successfully write object with key "+ parsed[2]);
 				}
