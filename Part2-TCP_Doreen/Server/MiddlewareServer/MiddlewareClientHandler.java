@@ -312,8 +312,9 @@ public class MiddlewareClientHandler extends Thread {
         }
 
     }
-    private boolean checkCustomerExists(int xid, int customerID) throws IOException, ClassNotFoundException {
+    private boolean checkCustomerExists(int xid, int customerID) throws IOException, ClassNotFoundException, InvalidTransactionException, DeadlockException {
         String checkCustomer = String.format("QueryCustomer,%d,%d",xid,customerID);
+        beforeOperation(xid, "customer-"+customerID, TransactionLockObject.LockType.LOCK_READ);
         String response = executeRequestInResourceManager(ServerType.CUSTOMER, checkCustomer);
         if(response.equals("")){
             return false;
@@ -412,7 +413,7 @@ public class MiddlewareClientHandler extends Thread {
     }
 
 
-    private String executeBundleSendBackToClient(String receivedFromClient) throws IOException, ClassNotFoundException {
+    private String executeBundleSendBackToClient(String receivedFromClient) throws IOException, ClassNotFoundException, InvalidTransactionException, DeadlockException{
 
         String response = "";
         String failMessage = "";
@@ -434,6 +435,9 @@ public class MiddlewareClientHandler extends Thread {
         int roomPrice = 0;
         ArrayList<Integer> flightsPrices = new ArrayList<>();
 
+        TransactionLockObject.LockType wLock = TransactionLockObject.LockType.LOCK_WRITE;
+        TransactionLockObject.LockType rLock = TransactionLockObject.LockType.LOCK_READ;
+
         // Check if client exists
         if (!checkCustomerExists(xid, customerID)) {
             response += "Failed-Customer does not exists\n";
@@ -448,6 +452,7 @@ public class MiddlewareClientHandler extends Thread {
         // Book a car if requested.
         if (bookCar) {
             String simulatedCmd = "ReserveCar," + xid + "," + customerID + "," + location;
+            beforeOperation(xid, "car-" + location, wLock);
             String bookCarResponse = executeRequestInResourceManager(ServerType.CAR, simulatedCmd);
             if (bookCarResponse.equals("false")) {
                 failMessage += "Car could not be reserved. There might not be a car available for reservation at this time.\n";
@@ -463,6 +468,7 @@ public class MiddlewareClientHandler extends Thread {
         // Book a room if requested.
         if (bookRoom) {
             String simulatedCmd = "ReserveRoom," + xid + "," + customerID + "," + location;
+            beforeOperation(xid, "room-" + location, wLock);
             String bookRoomResponse = executeRequestInResourceManager(ServerType.ROOM, simulatedCmd);
             if (bookRoomResponse.equals("false")) {
                 failMessage+="Room could not be reserved. There might not be a room available for reservation at this time.\n";
@@ -478,6 +484,7 @@ public class MiddlewareClientHandler extends Thread {
         for (int i = 0; i < flightAmount; i++) {
             int flightNumber = Integer.parseInt(parsed[3 + i]);
             String simulatedCmd = "ReserveFlight," + xid + "," + customerID + "," + flightNumber;
+            beforeOperation(xid, "flight-" + flightNumber, wLock);
             String bookFlightResponse = executeRequestInResourceManager(ServerType.FLIGHT, simulatedCmd);
             if(bookFlightResponse.equals("false")){
                 failMessage+="Flight " +flightNumber+" could not be reserved\n";
@@ -492,6 +499,7 @@ public class MiddlewareClientHandler extends Thread {
         }
         //reserve in customer side
         if(roomSuccess && carSuccess && flightSuccess){
+            beforeOperation(xid, "customer-" + customerID, wLock);
             if(bookCar){
                 String request = "ReserveItem,"+xid+","+customerID+","+ Car.getKey(location)+","+location+","+carPrice;
                 executeRequestInResourceManager(ServerType.CUSTOMER, request);
@@ -513,14 +521,17 @@ public class MiddlewareClientHandler extends Thread {
         else{
             if(bookCar && carSuccess){
                 String addBack = "CancelCar,"+xid+","+customerID+","+Car.getKey(location)+","+ 1;
+                beforeOperation(xid, "car-" + location, wLock);
                 executeRequestInResourceManager(ServerType.CAR, addBack);
             }
             if(bookRoom && roomSuccess){
                 String addBack = "CancelRoom,"+xid+","+customerID+","+Room.getKey(location)+","+ 1;
+                beforeOperation(xid, "room-" + location, wLock);
                 executeRequestInResourceManager(ServerType.ROOM, addBack);
             }
             for(int flightNum: reservedFlights ){
                 String addBack = "CancelFlight,"+xid+","+customerID+","+Flight.getKey(flightNum)+","+ 1;
+                beforeOperation(xid, "flight-" + flightNum, wLock);
                 executeRequestInResourceManager(ServerType.FLIGHT, addBack);
             }
             failMessage+="Bundle failed!\n";
