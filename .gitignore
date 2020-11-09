@@ -1,2 +1,11 @@
 /out/
 /.idea/
+*.class
+*.iml
+*.sh
+*.xml
+*.patch
+*/Makefile
+Makefile
+*/.DS_Store
+.DS_Store

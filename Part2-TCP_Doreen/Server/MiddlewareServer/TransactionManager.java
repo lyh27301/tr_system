@@ -12,11 +12,11 @@ import java.util.HashMap;
 public class TransactionManager {
     private HashMap<Integer, Transaction> allTransactions = new HashMap<>();
     private LockManager lockManager = new LockManager();
-    private int idCounter = 0;
+    volatile private int idCounter = 0;
 
 
 
-    public int createNewTransaction() {
+    synchronized public int createNewTransaction() {
         int xid = idCounter + 1;
         idCounter++;
         Transaction transaction = new Transaction(xid);
