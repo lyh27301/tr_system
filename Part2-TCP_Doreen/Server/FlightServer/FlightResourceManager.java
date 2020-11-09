@@ -11,9 +11,13 @@ import java.net.Socket;
 
 public class FlightResourceManager extends BasicResourceManager {
 
-    public FlightResourceManager(Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream)
+//    public FlightResourceManager(Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream)
+//    {
+//        super("FlightResourceManager", clientSocket, inputStream, outputStream);
+//    }
+    public FlightResourceManager()
     {
-        super("FlightResourceManager", clientSocket, inputStream, outputStream);
+        super("FlightResourceManager");
     }
 
     @Override

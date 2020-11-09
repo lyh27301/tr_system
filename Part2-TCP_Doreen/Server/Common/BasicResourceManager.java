@@ -13,66 +13,66 @@ public abstract class BasicResourceManager extends Thread {
 	protected String m_name = "";
 	protected RMHashMap m_data = new RMHashMap();
 
-	final Socket clientSocket;
-	final ObjectInputStream inputStream;
-	final ObjectOutputStream outputStream;
+	//final Socket clientSocket;
+	//final ObjectInputStream inputStream;
+	//final ObjectOutputStream outputStream;
 
-	public BasicResourceManager(String p_name, Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream)
+	public BasicResourceManager(String p_name)
 	{
 		this.m_name = p_name;
-		this.inputStream = inputStream;
-		this.outputStream = outputStream;
-		this.clientSocket = clientSocket;
+		//this.inputStream = inputStream;
+		//this.outputStream = outputStream;
+		//this.clientSocket = clientSocket;
 	}
 
-	@Override
-	public void run(){
-		while(true){
-			try {
-				Message message = (Message)inputStream.readObject();
-				String received = message.getMessageText();
-
-				String[] parsed = received.split(",");
-
-				if (parsed[0].equals("Quit")){
-					outputStream.writeObject(new Message("Quit Received"));
-					Trace.info("Quitting a client connection...");
-					break;
-				}
-
-				if (parsed[0].equals("ReadObject")){
-					Object obj = readData(stringToInt(parsed[1]), parsed[2]);
-					outputStream.writeObject(obj);
-					Trace.info("Return object with key "+ parsed[2]);
-				}
-
-				else if (parsed[0].equals("WriteObject")){
-					writeData(stringToInt(parsed[1]), parsed[2], (RMItem) message.getMessageObject());
-					outputStream.writeObject(new Message("SUCCESS"));
-					Trace.info("Successfully write object with key "+ parsed[2]);
-				}
-
-				else{
-					String response = executeRequest(parsed);
-					outputStream.writeObject(new Message(response));
-				}
-
-
-			}catch (IOException | ClassNotFoundException e) {
-				e.printStackTrace();
-				break;
-			}
-		}
-		try{
-			this.clientSocket.close();
-			this.inputStream.close();
-			this.outputStream.close();
-			Trace.info("Client connection is closed.");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-	}
+//	@Override
+//	public void run(){
+//		while(true){
+//			try {
+//				Message message = (Message)inputStream.readObject();
+//				String received = message.getMessageText();
+//
+//				String[] parsed = received.split(",");
+//
+//				if (parsed[0].equals("Quit")){
+//					outputStream.writeObject(new Message("Quit Received"));
+//					Trace.info("Quitting a client connection...");
+//					break;
+//				}
+//
+//				if (parsed[0].equals("ReadObject")){
+//					Object obj = readData(stringToInt(parsed[1]), parsed[2]);
+//					outputStream.writeObject(obj);
+//					Trace.info("Return object with key "+ parsed[2]);
+//				}
+//
+//				else if (parsed[0].equals("WriteObject")){
+//					writeData(stringToInt(parsed[1]), parsed[2], (RMItem) message.getMessageObject());
+//					outputStream.writeObject(new Message("SUCCESS"));
+//					Trace.info("Successfully write object with key "+ parsed[2]);
+//				}
+//
+//				else{
+//					String response = executeRequest(parsed);
+//					outputStream.writeObject(new Message(response));
+//				}
+//
+//
+//			}catch (IOException | ClassNotFoundException e) {
+//				e.printStackTrace();
+//				break;
+//			}
+//		}
+//		try{
+//			this.clientSocket.close();
+//			this.inputStream.close();
+//			this.outputStream.close();
+//			Trace.info("Client connection is closed.");
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//
+//	}
 
 	public abstract String executeRequest(String[] parsed);
 

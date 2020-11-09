@@ -11,9 +11,13 @@ import java.rmi.RemoteException;
 
 public class RoomResourceManager extends BasicResourceManager {
 
-    public RoomResourceManager(Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream)
+//    public RoomResourceManager(Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream)
+//    {
+//        super("RoomResourceManager", clientSocket, inputStream, outputStream);
+//    }
+    public RoomResourceManager()
     {
-        super("RoomResourceManager", clientSocket, inputStream, outputStream);
+        super("RoomResourceManager");
     }
 
     @Override

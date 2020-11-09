@@ -12,10 +12,15 @@ import java.net.Socket;
 
 public class CarResourceManager extends BasicResourceManager {
 
-	public CarResourceManager(Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream)
+//	public CarResourceManager(Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream)
+//	{
+//		super("CarResourceManager", clientSocket, inputStream, outputStream);
+//	}
+	public CarResourceManager()
 	{
-		super("CarResourceManager", clientSocket, inputStream, outputStream);
+		super("CarResourceManager");
 	}
+
 
 	@Override
 	public String executeRequest(String[] parsed) {

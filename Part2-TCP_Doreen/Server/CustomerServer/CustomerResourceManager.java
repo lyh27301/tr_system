@@ -9,9 +9,15 @@ import java.util.Calendar;
 
 public class CustomerResourceManager extends BasicResourceManager {
 
-    public CustomerResourceManager(Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream)
+//    public CustomerResourceManager(Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream)
+//    {
+//        super("CustomerResourceManager", clientSocket, inputStream, outputStream);
+//
+//    }
+    public CustomerResourceManager()
     {
-        super("CustomerResourceManager", clientSocket, inputStream, outputStream);
+        super("CustomerResourceManager");
+
     }
 
     @Override

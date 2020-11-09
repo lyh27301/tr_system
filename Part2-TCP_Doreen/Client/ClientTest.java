@@ -13,7 +13,7 @@ public class ClientTest implements Runnable{
 
     static int middlewarePort = 6116;
     static String middlewareHost = "localhost";
-    public static int numberOfClients = 10;
+    public static int numberOfClients = 1;
     public long startTime = 0;
     public double throughput = 1.0;
     public long[] times = new long[50];
