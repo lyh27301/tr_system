@@ -20,7 +20,7 @@ public class Message implements Serializable {
         return remoteObject;
     }
 
-    public void setMessageObject(RMItem object) {
+    public void setMessageObject(Object object) {
         this.remoteObject = object;
     }
 

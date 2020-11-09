@@ -13,7 +13,7 @@ public class ClientTest implements Runnable{
 
     static int middlewarePort = 6116;
     static String middlewareHost = "localhost";
-    public static int numberOfClients = 1;
+    public static int numberOfClients = 10;
     public long startTime = 0;
     public double throughput = 1.0;
     public long[] times = new long[50];
@@ -118,9 +118,11 @@ public class ClientTest implements Runnable{
         System.out.println("Start setup");
         try {
             outputStream.writeObject(new Message("Start"));
-            String response = ((Message)inputStream.readObject()).getMessageText();
+            Message msg = (Message)inputStream.readObject();
+            String response = msg.getMessageText();
             System.out.println(response);
-            int xid = Integer.valueOf(response);
+            int xid = (int)(msg.getMessageObject());
+            System.out.println(xid);
             for (int i = 1; i <= 100; i++) {
                 outputStream.writeObject(new Message("AddFlight,"+ xid +","+i+",1000,"+String.valueOf(500+i)));
                 response = ((Message)inputStream.readObject()).getMessageText();
@@ -140,6 +142,28 @@ public class ClientTest implements Runnable{
             outputStream.writeObject(new Message("Commit,"+xid));
             response = ((Message)inputStream.readObject()).getMessageText();
             System.out.println(response);
+
+            outputStream.writeObject(new Message("Start"));
+            msg = (Message)inputStream.readObject();
+            response = msg.getMessageText();
+            System.out.println(response);
+            xid = (int)(msg.getMessageObject());
+            System.out.println(xid);
+            outputStream.writeObject(new Message("QueryFlight,"+ xid +","+"1"));
+            response = ((Message)inputStream.readObject()).getMessageText();
+            System.out.println(response);
+            outputStream.writeObject(new Message("QueryCars,"+ xid +","+"Montreal"+"1"));
+            response = ((Message)inputStream.readObject()).getMessageText();
+            System.out.println(response);
+            outputStream.writeObject(new Message("QueryRooms,"+ xid +","+"Montreal"+"1"));
+            response = ((Message)inputStream.readObject()).getMessageText();
+            System.out.println(response);
+            outputStream.writeObject(new Message("Commit,"+xid));
+            response = ((Message)inputStream.readObject()).getMessageText();
+            System.out.println(response);
+            outputStream.writeObject(new Message("Quit"));
+            response = ((Message)inputStream.readObject()).getMessageText();
+            System.out.println(response);
         } catch(Exception e){
             System.out.println(e.toString());
             System.exit(-1);
@@ -154,9 +178,12 @@ public class ClientTest implements Runnable{
         int key = (int)(Math.random()*100 + 1);
         int customerID = (int)(Math.random()*500 + 1);
         outputStream.writeObject(new Message("Start"));
-        String response = ((Message)inputStream.readObject()).getMessageText();
+        Message msg = (Message)inputStream.readObject();
+        String response = msg.getMessageText();
         System.out.println(response);
-        int xid = Integer.valueOf(response);
+        int xid = (int)(msg.getMessageObject());
+        System.out.println(xid);
+        //int xid = Integer.valueOf(response);
         outputStream.writeObject(new Message("QueryFlight,"+ xid +","+key));
         response = ((Message)inputStream.readObject()).getMessageText();
         System.out.println(response);
@@ -191,9 +218,11 @@ public class ClientTest implements Runnable{
         int key = (int)(Math.random()*100 + 1);
         int customerID = (int)(Math.random()*500 + 1);
         outputStream.writeObject(new Message("Start"));
-        String response = ((Message)inputStream.readObject()).getMessageText();
+        Message msg = (Message)inputStream.readObject();
+        String response = msg.getMessageText();
         System.out.println(response);
-        int xid = Integer.valueOf(response);
+        int xid = (int)(msg.getMessageObject());
+        System.out.println(xid);
         outputStream.writeObject(new Message("QueryFlight,"+ xid +","+key));
         response = ((Message)inputStream.readObject()).getMessageText();
         System.out.println(response);

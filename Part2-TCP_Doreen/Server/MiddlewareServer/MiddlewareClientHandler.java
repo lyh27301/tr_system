@@ -133,7 +133,10 @@ public class MiddlewareClientHandler extends Thread {
 
                     if (command.equals("Start")) {
                         int xid = startTransaction();
-                        clientOutputStream.writeObject(new Message("Transaction-" + xid + " has started"));
+                        Message message = new Message("Transaction-" + xid + " has started");
+                        message.setMessageObject(Integer.valueOf(xid));
+                        clientOutputStream.writeObject(message);
+                        //clientOutputStream.writeObject(new Message("Transaction-" + xid + " has started"));
                     } else if (!transactionManager.existsTransaction(Integer.parseInt(parsed[1]))) {
                         clientOutputStream.writeObject(new Message("Transaction-" + parsed[1] + " hasn't been created yet."));
                     } else if (command.equals("Commit")) {
