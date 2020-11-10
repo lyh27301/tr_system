@@ -11,10 +11,9 @@ import java.util.HashMap;
 
 public class TransactionManager {
     private HashMap<Integer, Transaction> allTransactions = new HashMap<>();
+    private HashMap<Integer, TransactionTimeout> timeoutHashMap = new HashMap<>();
     private LockManager lockManager = new LockManager();
     volatile private int idCounter = 0;
-
-
 
     synchronized public int createNewTransaction() {
         int xid = idCounter + 1;
@@ -23,6 +22,15 @@ public class TransactionManager {
         allTransactions.put(xid, transaction);
         return xid;
     }
+
+    public void addTimeout(int xid, TransactionTimeout timeout) {
+        timeoutHashMap.put(xid, timeout);
+    }
+
+    public TransactionTimeout getTimeout(int xid) {
+        return timeoutHashMap.get(xid);
+    }
+
 
     public boolean existsTransaction(int xid){
         return allTransactions.containsKey(xid);
@@ -50,6 +58,10 @@ public class TransactionManager {
         boolean success = lockManager.UnlockAll(xid);
         allTransactions.remove(xid);
         return success;
+    }
+
+    public Transaction getTransaction(int xid) {
+        return  allTransactions.get(xid);
     }
 
 

@@ -537,10 +537,12 @@ public class MiddlewareClientHandler extends Thread {
 
     public int startTransaction() throws IOException {
         int xid = transactionManager.createNewTransaction();
+        TransactionTimeout timeoutChecker = new TransactionTimeout(xid, transactionManager, this);
+        Thread t_timeout = new Thread(timeoutChecker);
+        transactionManager.addTimeout(xid, timeoutChecker);
+        t_timeout.start();
         return xid;
     }
-
-
 
     public void beforeOperation (int xid, String key, TransactionLockObject.LockType lockType) throws IOException, InvalidTransactionException, DeadlockException {
 
@@ -564,17 +566,21 @@ public class MiddlewareClientHandler extends Thread {
                 Trace.error(e.getMessage());
             }
         }
+        transactionManager.getTransaction(xid).zeroTimeCounter();
     }
 
     public boolean abort(int xid) throws InvalidTransactionException {
+        System.out.println("abort method in client handler starts");
         HashMap<String, RMItem> transactionHistory = transactionManager.getTransactionHistory(xid);
 
         for (Map.Entry<String, RMItem> entry : transactionHistory.entrySet()) {
             String key = entry.getKey();
             RMItem value = entry.getValue();
             try {
+                System.out.println("try1");
                 writeRemoteObject(xid, key, value);
             } catch (Exception e) {
+                System.out.println("catch1");
                 throw new InvalidTransactionException(xid, "Failed to undo operations on object (" + key + ")");
             }
         }
@@ -582,6 +588,7 @@ public class MiddlewareClientHandler extends Thread {
         if (transactionManager.releaseLockAndRemoveTransaction (xid)) {
             return true;
         }else{
+            System.out.println("throw2");
             throw new InvalidTransactionException(xid, "Failed to release all locks held by Transaction-"+ xid);
         }
 
