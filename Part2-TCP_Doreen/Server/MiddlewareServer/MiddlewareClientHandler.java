@@ -7,7 +7,6 @@ import Server.LockManager.TransactionLockObject;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,36 +19,16 @@ public class MiddlewareClientHandler extends Thread {
     final ObjectInputStream clientInputStream;
     final ObjectOutputStream clientOutputStream;
 
-
-    enum ServerType {CAR, FLIGHT, ROOM, CUSTOMER}
-
-    //configuration
-    String carServerHost = "localhost";
-    int carServerPort = 6316;
-
-    String flightServerHost = "localhost";
-    int flightServerPort = 6216;
-
-    String roomServerHost = "localhost";
-    int roomServerPort = 6416;
-
-    String customerServerHost = "localhost";
-    int customerServerPort = 6516;
-
-    //connections
-    Socket carSocket;
+    //connections to the resource managers
     ObjectInputStream carInputStream;
     ObjectOutputStream carOutputStream;
 
-    Socket flightSocket;
     ObjectInputStream flightInputStream;
     ObjectOutputStream flightOutputStream;
 
-    Socket roomSocket;
     ObjectInputStream roomInputStream;
     ObjectOutputStream roomOutputStream;
 
-    Socket customerSocket;
     ObjectInputStream customerInputStream;
     ObjectOutputStream customerOutputStream;
 
@@ -59,25 +38,31 @@ public class MiddlewareClientHandler extends Thread {
     public MiddlewareClientHandler(Socket clientSocket,
                                    ObjectInputStream inputStream,
                                    ObjectOutputStream outputStream,
-                                   String carServerHost,
-                                   String flightServerHost,
-                                   String roomServerHost,
-                                   String customerServerHost,
+                                   ObjectInputStream carInputStream,
+                                   ObjectOutputStream carOutputStream,
+                                   ObjectInputStream flightInputStream,
+                                   ObjectOutputStream flightOutputStream,
+                                   ObjectInputStream roomInputStream,
+                                   ObjectOutputStream roomOutputStream,
+                                   ObjectInputStream customerInputStream,
+                                   ObjectOutputStream customerOutputStream,
                                    TransactionManager transactionManager) {
 
         this.clientInputStream = inputStream;
         this.clientOutputStream = outputStream;
         this.clientSocket = clientSocket;
 
-        this.carServerHost = carServerHost;
-        this.flightServerHost = flightServerHost;
-        this.roomServerHost = roomServerHost;
-        this.customerServerHost = customerServerHost;
+        this.carInputStream = carInputStream;
+        this.carOutputStream = carOutputStream;
 
-        connectToServer(ServerType.CAR);
-        connectToServer(ServerType.FLIGHT);
-        connectToServer(ServerType.ROOM);
-        connectToServer(ServerType.CUSTOMER);
+        this.flightInputStream = flightInputStream;
+        this.flightOutputStream = flightOutputStream;
+
+        this.roomInputStream = roomInputStream;
+        this.roomOutputStream = roomOutputStream;
+
+        this.customerInputStream = customerInputStream;
+        this.customerOutputStream = customerOutputStream;
 
         this.transactionManager = transactionManager;
     }
@@ -89,29 +74,9 @@ public class MiddlewareClientHandler extends Thread {
                 try {
                     // receive client request
                     String receivedFromClient = ((Message) clientInputStream.readObject()).getMessageText();
-
-
                     String[] parsed = receivedFromClient.split(",");
                     String command = parsed[0];
 
-
-                    if (command.equals("Quit")) {
-                        if (executeRequestInResourceManager(ServerType.CAR, receivedFromClient).equals("Quit Received")) {
-                            Trace.info("Quitting the car server connection in a thread...");
-                        }
-                        if (executeRequestInResourceManager(ServerType.FLIGHT, receivedFromClient).equals("Quit Received")) {
-                            Trace.info("Quitting the flight server connection in a thread...");
-                        }
-                        if (executeRequestInResourceManager(ServerType.ROOM, receivedFromClient).equals("Quit Received")) {
-                            Trace.info("Quitting the room server connection in a thread...");
-                        }
-                        if (executeRequestInResourceManager(ServerType.CUSTOMER, receivedFromClient).equals("Quit Received")) {
-                            Trace.info("Quitting the customer server connection in a thread...");
-                        }
-
-                        clientOutputStream.writeObject(new Message("Good Bye"));
-                        break;
-                    }
 
                     //Don't remove this for now. Use it for debugging
                 /*
@@ -136,16 +101,21 @@ public class MiddlewareClientHandler extends Thread {
                         Message message = new Message("Transaction-" + xid + " has started");
                         message.setMessageObject(Integer.valueOf(xid));
                         clientOutputStream.writeObject(message);
-                        //clientOutputStream.writeObject(new Message("Transaction-" + xid + " has started"));
-                    } else if (!transactionManager.existsTransaction(Integer.parseInt(parsed[1]))) {
-                        clientOutputStream.writeObject(new Message("Transaction-" + parsed[1] + " hasn't been created yet."));
-                    } else if (command.equals("Commit")) {
+                    }
+
+                    else if (!transactionManager.existsTransaction(Integer.parseInt(parsed[1]))) {
+                        clientOutputStream.writeObject(new Message("Transaction-" + parsed[1] + " does not exist."));
+                    }
+
+                    else if (command.equals("Commit")) {
                         if (commit(Integer.parseInt(parsed[1]))) {
                             clientOutputStream.writeObject(new Message("Transaction-" + parsed[1] + " is committed"));
                         } else {
                             clientOutputStream.writeObject(new Message("Failed to commit Transaction-" + parsed[1]));
                         }
-                    } else if (command.equals("Abort")) {
+                    }
+
+                    else if (command.equals("Abort")) {
                         if (abort(Integer.parseInt(parsed[1]))) {
                             clientOutputStream.writeObject(new Message("Transaction-" + parsed[1] + " is aborted"));
                         } else {
@@ -157,96 +127,109 @@ public class MiddlewareClientHandler extends Thread {
                     //Choose the responsible service
                     else if (command.equals("AddCars") || command.equals("DeleteCars") || command.equals("QueryCars")
                             || command.equals("QueryCarsPrice")) {
-
                         TransactionLockObject.LockType lockType = (command.equals("AddCars") || command.equals("DeleteCars")) ?
                                 TransactionLockObject.LockType.LOCK_WRITE : TransactionLockObject.LockType.LOCK_READ;
                         beforeOperation(Integer.parseInt(parsed[1]), "car-" + parsed[2], lockType);
-                        String response = executeRequestInResourceManager(ServerType.CAR, receivedFromClient);
+                        String response = executeRequestInResourceManager(MiddlewareServer.ServerType.CAR, receivedFromClient);
                         clientOutputStream.writeObject(new Message(response));
-                    } else if (command.equals("AddFlight") || command.equals("DeleteFlight") || command.equals("QueryFlight")
+                    }
+
+                    else if (command.equals("AddFlight") || command.equals("DeleteFlight") || command.equals("QueryFlight")
                             || command.equals("QueryFlightPrice")) {
 
                         TransactionLockObject.LockType lockType = (command.equals("AddFlight") || command.equals("DeleteFlight")) ?
                                 TransactionLockObject.LockType.LOCK_WRITE : TransactionLockObject.LockType.LOCK_READ;
                         beforeOperation(Integer.parseInt(parsed[1]), "flight-" + parsed[2], lockType);
 
-                        String response = executeRequestInResourceManager(ServerType.FLIGHT, receivedFromClient);
+                        String response = executeRequestInResourceManager(MiddlewareServer.ServerType.FLIGHT, receivedFromClient);
                         clientOutputStream.writeObject(new Message(response));
-                    } else if (command.equals("AddRooms") || command.equals("DeleteRooms") || command.equals("QueryRooms")
+                    }
+
+                    else if (command.equals("AddRooms") || command.equals("DeleteRooms") || command.equals("QueryRooms")
                             || command.equals("QueryRoomsPrice")) {
 
                         TransactionLockObject.LockType lockType = (command.equals("AddRooms") || command.equals("DeleteRooms")) ?
                                 TransactionLockObject.LockType.LOCK_WRITE : TransactionLockObject.LockType.LOCK_READ;
                         beforeOperation(Integer.parseInt(parsed[1]), "room-" + parsed[2], lockType);
 
-                        String response = executeRequestInResourceManager(ServerType.ROOM, receivedFromClient);
+                        String response = executeRequestInResourceManager(MiddlewareServer.ServerType.ROOM, receivedFromClient);
                         clientOutputStream.writeObject(new Message(response));
-                    } else if (command.equals("AddCustomer") || command.equals("AddCustomerID")
+                    }
+
+                    else if (command.equals("AddCustomer") || command.equals("AddCustomerID")
                             || command.equals("QueryCustomer")) {
 
                         TransactionLockObject.LockType lockType = (command.equals("AddCustomer") || command.equals("AddCustomerID")) ?
                                 TransactionLockObject.LockType.LOCK_WRITE : TransactionLockObject.LockType.LOCK_READ;
                         beforeOperation(Integer.parseInt(parsed[1]), "customer-" + parsed[2], lockType);
 
-                        String response = executeRequestInResourceManager(ServerType.CUSTOMER, receivedFromClient);
+                        String response = executeRequestInResourceManager(MiddlewareServer.ServerType.CUSTOMER, receivedFromClient);
                         clientOutputStream.writeObject(new Message(response));
-                    } else if (command.equals("ReserveRoom")) {
+                    }
+
+                    else if (command.equals("ReserveRoom")) {
                         if (checkCustomerExists(Integer.parseInt(parsed[1]), Integer.parseInt(parsed[2]))) {
                             TransactionLockObject.LockType lockType = TransactionLockObject.LockType.LOCK_WRITE;
                             beforeOperation(Integer.parseInt(parsed[1]), "room-" + parsed[3], lockType);
-                            String response = executeRequestInResourceManager(ServerType.ROOM, receivedFromClient);
+                            String response = executeRequestInResourceManager(MiddlewareServer.ServerType.ROOM, receivedFromClient);
                             if (response.equals("false")) {
                                 clientOutputStream.writeObject(new Message("Room could not be reserved"));
                             } else {
                                 String request = "ReserveItem," + parsed[1] + "," + parsed[2] + "," + Room.getKey(parsed[3]) + "," + parsed[3] + "," + Integer.valueOf(response);
                                 TransactionLockObject.LockType customerLockType = TransactionLockObject.LockType.LOCK_WRITE;
                                 beforeOperation(Integer.parseInt(parsed[1]), "customer" + parsed[2], customerLockType);
-                                response = executeRequestInResourceManager(ServerType.CUSTOMER, request);
+                                response = executeRequestInResourceManager(MiddlewareServer.ServerType.CUSTOMER, request);
                                 clientOutputStream.writeObject(new Message(response));
                             }
                         } else {
                             clientOutputStream.writeObject(new Message("Failed-Customer does not exists"));
                         }
 
-                    } else if (command.equals("ReserveFlight")) {
+                    }
+
+                    else if (command.equals("ReserveFlight")) {
                         if (checkCustomerExists(Integer.parseInt(parsed[1]), Integer.parseInt(parsed[2]))) {
                             TransactionLockObject.LockType lockType = TransactionLockObject.LockType.LOCK_WRITE;
                             beforeOperation(Integer.parseInt(parsed[1]), "flight-" + parsed[3], lockType);
-                            String response = executeRequestInResourceManager(ServerType.FLIGHT, receivedFromClient);
+                            String response = executeRequestInResourceManager(MiddlewareServer.ServerType.FLIGHT, receivedFromClient);
                             if (response.equals("false")) {
                                 clientOutputStream.writeObject(new Message("Flight could not be reserved"));
                             } else {
                                 String request = "ReserveItem," + parsed[1] + "," + parsed[2] + "," + Flight.getKey(Integer.parseInt(parsed[3])) + "," + parsed[3] + "," + Integer.valueOf(response);
                                 TransactionLockObject.LockType customerLockType = TransactionLockObject.LockType.LOCK_WRITE;
                                 beforeOperation(Integer.parseInt(parsed[1]), "customer" + parsed[2], customerLockType);
-                                response = executeRequestInResourceManager(ServerType.CUSTOMER, request);
+                                response = executeRequestInResourceManager(MiddlewareServer.ServerType.CUSTOMER, request);
                                 clientOutputStream.writeObject(new Message(response));
                             }
                         } else {
                             clientOutputStream.writeObject(new Message("Failed-Customer does not exists"));
                         }
-                    } else if (command.equals("ReserveCar")) {
+                    }
+
+                    else if (command.equals("ReserveCar")) {
                         if (checkCustomerExists(Integer.parseInt(parsed[1]), Integer.parseInt(parsed[2]))) {
                             TransactionLockObject.LockType lockType = TransactionLockObject.LockType.LOCK_WRITE;
                             beforeOperation(Integer.parseInt(parsed[1]), "car-" + parsed[3], lockType);
-                            String response = executeRequestInResourceManager(ServerType.CAR, receivedFromClient);
+                            String response = executeRequestInResourceManager(MiddlewareServer.ServerType.CAR, receivedFromClient);
                             if (response.equals("false")) {
                                 clientOutputStream.writeObject(new Message("Car could not be reserved"));
                             } else {
                                 String request = "ReserveItem," + parsed[1] + "," + parsed[2] + "," + Car.getKey(parsed[3]) + "," + parsed[3] + "," + Integer.valueOf(response);
                                 TransactionLockObject.LockType customerLockType = TransactionLockObject.LockType.LOCK_WRITE;
                                 beforeOperation(Integer.parseInt(parsed[1]), "customer" + parsed[2], customerLockType);
-                                response = executeRequestInResourceManager(ServerType.CUSTOMER, request);
+                                response = executeRequestInResourceManager(MiddlewareServer.ServerType.CUSTOMER, request);
                                 clientOutputStream.writeObject(new Message(response));
                             }
                         } else {
                             clientOutputStream.writeObject(new Message("Failed-Customer does not exists"));
                         }
 
-                    } else if (command.equals("DeleteCustomer")) {
+                    }
+
+                    else if (command.equals("DeleteCustomer")) {
                         TransactionLockObject.LockType writeLockType = TransactionLockObject.LockType.LOCK_WRITE;
                         beforeOperation(Integer.parseInt(parsed[1]), "customer-" + parsed[2], writeLockType);
-                        String response = executeRequestInResourceManager(ServerType.CUSTOMER, receivedFromClient);
+                        String response = executeRequestInResourceManager(MiddlewareServer.ServerType.CUSTOMER, receivedFromClient);
                         if (response.equals("false")) {
                             clientOutputStream.writeObject(new Message("Failed-Customer does not exists"));
                         } else if (response.equals("")) {
@@ -259,21 +242,23 @@ public class MiddlewareClientHandler extends Thread {
                                 if (type.equals("car")) {
                                     String addBack = "CancelCar," + parsed[1] + "," + parsed[2] + "," + reservations[count] + "," + reservations[count + 1];
                                     beforeOperation(Integer.parseInt(parsed[1]), "car-" + reservations[count], writeLockType);
-                                    executeRequestInResourceManager(ServerType.CAR, addBack);
+                                    executeRequestInResourceManager(MiddlewareServer.ServerType.CAR, addBack);
                                 } else if (type.equals("room")) {
                                     String addBack = "CancelRoom," + parsed[1] + "," + parsed[2] + "," + reservations[count] + "," + reservations[count + 1];
                                     beforeOperation(Integer.parseInt(parsed[1]), "room-" + reservations[count], writeLockType);
-                                    executeRequestInResourceManager(ServerType.ROOM, addBack);
+                                    executeRequestInResourceManager(MiddlewareServer.ServerType.ROOM, addBack);
                                 } else {
                                     String addBack = "CancelFlight," + parsed[1] + "," + parsed[2] + "," + reservations[count] + "," + reservations[count + 1];
                                     beforeOperation(Integer.parseInt(parsed[1]), "flight-" + reservations[count], writeLockType);
-                                    executeRequestInResourceManager(ServerType.FLIGHT, addBack);
+                                    executeRequestInResourceManager(MiddlewareServer.ServerType.FLIGHT, addBack);
                                 }
                                 count += 2;
                             }
                             clientOutputStream.writeObject(new Message("Customer was deleted and all his/her reservations were canceled"));
                         }
-                    } else if (command.equals("Bundle")) {
+                    }
+
+                    else if (command.equals("Bundle")) {
                         TransactionLockObject.LockType lockType = TransactionLockObject.LockType.LOCK_WRITE;
                         String response = executeBundleSendBackToClient(receivedFromClient);
                         clientOutputStream.writeObject(new Message(response));
@@ -286,6 +271,7 @@ public class MiddlewareClientHandler extends Thread {
                 }
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
+                break;
             }
         }
         try {
@@ -315,17 +301,20 @@ public class MiddlewareClientHandler extends Thread {
         }
 
     }
+
+
     private boolean checkCustomerExists(int xid, int customerID) throws IOException, ClassNotFoundException, InvalidTransactionException, DeadlockException {
         String checkCustomer = String.format("QueryCustomer,%d,%d",xid,customerID);
         beforeOperation(xid, "customer-"+customerID, TransactionLockObject.LockType.LOCK_READ);
-        String response = executeRequestInResourceManager(ServerType.CUSTOMER, checkCustomer);
+        String response = executeRequestInResourceManager(MiddlewareServer.ServerType.CUSTOMER, checkCustomer);
         if(response.equals("")){
             return false;
         }
         return true;
     }
 
-    private String executeRequestInResourceManager (ServerType serverType, String message) throws IOException, ClassNotFoundException {
+
+    private String executeRequestInResourceManager (MiddlewareServer.ServerType serverType, String message) throws IOException, ClassNotFoundException {
         String response ="";
         switch (serverType) {
             case CAR:
@@ -347,6 +336,7 @@ public class MiddlewareClientHandler extends Thread {
         }
         return response;
     }
+
 
     public RMItem readRemoteObject (int xid, String key) throws IOException, ClassNotFoundException {
         String[] parsed = key.split("-");
@@ -456,7 +446,7 @@ public class MiddlewareClientHandler extends Thread {
         if (bookCar) {
             String simulatedCmd = "ReserveCar," + xid + "," + customerID + "," + location;
             beforeOperation(xid, "car-" + location, wLock);
-            String bookCarResponse = executeRequestInResourceManager(ServerType.CAR, simulatedCmd);
+            String bookCarResponse = executeRequestInResourceManager(MiddlewareServer.ServerType.CAR, simulatedCmd);
             if (bookCarResponse.equals("false")) {
                 failMessage += "Car could not be reserved. There might not be a car available for reservation at this time.\n";
             }else {
@@ -472,7 +462,7 @@ public class MiddlewareClientHandler extends Thread {
         if (bookRoom) {
             String simulatedCmd = "ReserveRoom," + xid + "," + customerID + "," + location;
             beforeOperation(xid, "room-" + location, wLock);
-            String bookRoomResponse = executeRequestInResourceManager(ServerType.ROOM, simulatedCmd);
+            String bookRoomResponse = executeRequestInResourceManager(MiddlewareServer.ServerType.ROOM, simulatedCmd);
             if (bookRoomResponse.equals("false")) {
                 failMessage+="Room could not be reserved. There might not be a room available for reservation at this time.\n";
             }else{
@@ -488,7 +478,7 @@ public class MiddlewareClientHandler extends Thread {
             int flightNumber = Integer.parseInt(parsed[3 + i]);
             String simulatedCmd = "ReserveFlight," + xid + "," + customerID + "," + flightNumber;
             beforeOperation(xid, "flight-" + flightNumber, wLock);
-            String bookFlightResponse = executeRequestInResourceManager(ServerType.FLIGHT, simulatedCmd);
+            String bookFlightResponse = executeRequestInResourceManager(MiddlewareServer.ServerType.FLIGHT, simulatedCmd);
             if(bookFlightResponse.equals("false")){
                 failMessage+="Flight " +flightNumber+" could not be reserved\n";
                 break;
@@ -505,16 +495,16 @@ public class MiddlewareClientHandler extends Thread {
             beforeOperation(xid, "customer-" + customerID, wLock);
             if(bookCar){
                 String request = "ReserveItem,"+xid+","+customerID+","+ Car.getKey(location)+","+location+","+carPrice;
-                executeRequestInResourceManager(ServerType.CUSTOMER, request);
+                executeRequestInResourceManager(MiddlewareServer.ServerType.CUSTOMER, request);
             }
             if(bookRoom){
                 String request = "ReserveItem,"+xid+","+customerID+","+Room.getKey(location)+","+location+","+roomPrice;
-                executeRequestInResourceManager(ServerType.CUSTOMER, request);
+                executeRequestInResourceManager(MiddlewareServer.ServerType.CUSTOMER, request);
             }
             int i =0;
             for(int flightNum: reservedFlights ){
                 String request = "ReserveItem,"+xid+","+customerID+","+ Flight.getKey(flightNum)+","+flightNum+","+flightsPrices.get(i);
-                executeRequestInResourceManager(ServerType.CUSTOMER, request);
+                executeRequestInResourceManager(MiddlewareServer.ServerType.CUSTOMER, request);
                 i++;
             }
             response+="Bundle is reserved successfully!\n";
@@ -525,17 +515,17 @@ public class MiddlewareClientHandler extends Thread {
             if(bookCar && carSuccess){
                 String addBack = "CancelCar,"+xid+","+customerID+","+Car.getKey(location)+","+ 1;
                 beforeOperation(xid, "car-" + location, wLock);
-                executeRequestInResourceManager(ServerType.CAR, addBack);
+                executeRequestInResourceManager(MiddlewareServer.ServerType.CAR, addBack);
             }
             if(bookRoom && roomSuccess){
                 String addBack = "CancelRoom,"+xid+","+customerID+","+Room.getKey(location)+","+ 1;
                 beforeOperation(xid, "room-" + location, wLock);
-                executeRequestInResourceManager(ServerType.ROOM, addBack);
+                executeRequestInResourceManager(MiddlewareServer.ServerType.ROOM, addBack);
             }
             for(int flightNum: reservedFlights ){
                 String addBack = "CancelFlight,"+xid+","+customerID+","+Flight.getKey(flightNum)+","+ 1;
                 beforeOperation(xid, "flight-" + flightNum, wLock);
-                executeRequestInResourceManager(ServerType.FLIGHT, addBack);
+                executeRequestInResourceManager(MiddlewareServer.ServerType.FLIGHT, addBack);
             }
             failMessage+="Bundle failed!\n";
             return failMessage;
@@ -544,45 +534,6 @@ public class MiddlewareClientHandler extends Thread {
     }
 
 
-    private void connectToServer(ServerType serverType) {
-        //establish connection with resource manager server
-        try {
-            switch (serverType) {
-                case CAR:
-                    InetAddress carIp = InetAddress.getByName(carServerHost);
-                    this.carSocket = new Socket(carIp, carServerPort);
-                    this.carInputStream = new ObjectInputStream(this.carSocket.getInputStream());
-                    this.carOutputStream = new ObjectOutputStream(this.carSocket.getOutputStream());
-                    this.carOutputStream.flush();
-                    break;
-                case FLIGHT:
-                    InetAddress flightIp = InetAddress.getByName(flightServerHost);
-                    this.flightSocket = new Socket(flightIp, flightServerPort);
-                    this.flightInputStream = new ObjectInputStream(this.flightSocket.getInputStream());
-                    this.flightOutputStream = new ObjectOutputStream(this.flightSocket.getOutputStream());
-                    this.flightOutputStream.flush();
-                    break;
-                case ROOM:
-                    InetAddress roomIp = InetAddress.getByName(roomServerHost);
-                    this.roomSocket = new Socket(roomIp, roomServerPort);
-                    this.roomInputStream = new ObjectInputStream(this.roomSocket.getInputStream());
-                    this.roomOutputStream = new ObjectOutputStream(this.roomSocket.getOutputStream());
-                    this.roomOutputStream.flush();
-                    break;
-                case CUSTOMER:
-                    InetAddress customerIp = InetAddress.getByName(customerServerHost);
-                    this.customerSocket = new Socket(customerIp, customerServerPort);
-                    this.customerInputStream = new ObjectInputStream(this.customerSocket.getInputStream());
-                    this.customerOutputStream = new ObjectOutputStream(this.customerSocket.getOutputStream());
-                    this.customerOutputStream.flush();
-                    break;
-            }
-            System.out.println("connect server "+serverType.name()+" server.");
-        } catch (Exception e) {
-            Trace.error("Fail to connect server "+serverType.name()+" server.");
-            e.printStackTrace();
-        }
-    }
 
     public int startTransaction() throws IOException {
         int xid = transactionManager.createNewTransaction();

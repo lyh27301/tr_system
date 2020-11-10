@@ -62,9 +62,7 @@ public class TCP_Client {
             outputStream.writeObject(new Message(command));
 
             if(parsed[0].equals("Quit")){
-                outputStream.writeObject(new Message(command));
-                String quitAck = ((Message)inputStream.readObject()).getMessageText();
-                System.out.println(quitAck);
+                System.out.println("Goodbye!");
                 break;
             }
 
