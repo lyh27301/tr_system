@@ -363,7 +363,7 @@ public class MiddlewareClientHandler extends Thread {
         }
         if (outputStream!=null && inputStream!=null){
             outputStream.writeObject(new Message(message));
-            RMItem object = (RMItem) inputStream.readObject();
+            RMItem object = (RMItem)((Message) inputStream.readObject()).getMessageObject();
             return object;
         }
         return null;

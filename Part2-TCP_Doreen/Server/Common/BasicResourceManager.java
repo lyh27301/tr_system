@@ -42,7 +42,9 @@ public abstract class BasicResourceManager extends Thread {
 
 				if (parsed[0].equals("ReadObject")){
 					Object obj = readData(stringToInt(parsed[1]), parsed[2]);
-					outputStream.writeObject(obj);
+					Message m = new Message("");
+					m.setMessageObject(obj);
+					outputStream.writeObject(m);
 					Trace.info("Return object with key "+ parsed[2]);
 				}
 

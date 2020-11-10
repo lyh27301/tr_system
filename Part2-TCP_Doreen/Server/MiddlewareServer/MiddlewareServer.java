@@ -134,7 +134,7 @@ public class MiddlewareServer {
                     customerOutputStream.flush();
                     break;
             }
-            System.out.println("connect server "+serverType.name()+" server.");
+            Trace.info("connect server "+serverType.name()+" server.");
         } catch (Exception e) {
             Trace.error("Fail to connect server "+serverType.name()+" server.");
         }
