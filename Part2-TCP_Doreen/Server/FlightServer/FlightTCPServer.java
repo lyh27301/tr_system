@@ -1,5 +1,6 @@
 package Server.FlightServer;
 
+import Server.Common.RMHashMap;
 import Server.Common.Trace;
 
 import java.io.ObjectInputStream;
@@ -11,6 +12,7 @@ import java.net.Socket;
 public class FlightTCPServer {
 
     static int port = 6216;
+    static RMHashMap flight_data = new RMHashMap();
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(port);
@@ -26,7 +28,7 @@ public class FlightTCPServer {
 
                 outputStream.flush();
 
-                Thread t = new FlightResourceManager(clientSocket, inputStream, outputStream);
+                Thread t = new FlightResourceManager(clientSocket, inputStream, outputStream, flight_data);
                 t.start();
 
             } catch (IOException e) {

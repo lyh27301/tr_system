@@ -1,5 +1,6 @@
 package Server.RoomServer;
 
+import Server.Common.RMHashMap;
 import Server.Common.Trace;
 
 import java.io.ObjectInputStream;
@@ -10,6 +11,7 @@ import java.net.Socket;
 
 public class RoomTCPServer {
     static int port = 6416;
+    static RMHashMap room_data = new RMHashMap();
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(port);
@@ -25,7 +27,7 @@ public class RoomTCPServer {
 
                 outputStream.flush();
 
-                Thread t = new RoomResourceManager(clientSocket, inputStream, outputStream);
+                Thread t = new RoomResourceManager(clientSocket, inputStream, outputStream, room_data);
                 t.start();
 
             } catch (IOException e) {

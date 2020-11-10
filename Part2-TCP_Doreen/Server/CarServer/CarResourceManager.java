@@ -3,6 +3,7 @@ package Server.CarServer;
 
 import Server.Common.BasicResourceManager;
 import Server.Common.Car;
+import Server.Common.RMHashMap;
 import Server.Common.Trace;
 
 import java.io.ObjectInputStream;
@@ -12,9 +13,9 @@ import java.net.Socket;
 
 public class CarResourceManager extends BasicResourceManager {
 
-	public CarResourceManager(Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream)
+	public CarResourceManager(Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream, RMHashMap car_data)
 	{
-		super("CarResourceManager", clientSocket, inputStream, outputStream);
+		super("CarResourceManager", clientSocket, inputStream, outputStream, car_data);
 	}
 
 	@Override

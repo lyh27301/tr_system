@@ -1,6 +1,7 @@
 package Server.RoomServer;
 
 import Server.Common.BasicResourceManager;
+import Server.Common.RMHashMap;
 import Server.Common.Room;
 import Server.Common.Trace;
 
@@ -11,9 +12,9 @@ import java.rmi.RemoteException;
 
 public class RoomResourceManager extends BasicResourceManager {
 
-    public RoomResourceManager(Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream)
+    public RoomResourceManager(Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream, RMHashMap room_data)
     {
-        super("RoomResourceManager", clientSocket, inputStream, outputStream);
+        super("RoomResourceManager", clientSocket, inputStream, outputStream, room_data);
     }
 
     @Override

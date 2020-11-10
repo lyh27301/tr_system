@@ -2,6 +2,7 @@ package Server.FlightServer;
 
 import Server.Common.BasicResourceManager;
 import Server.Common.Flight;
+import Server.Common.RMHashMap;
 import Server.Common.Trace;
 
 import java.io.ObjectInputStream;
@@ -11,9 +12,9 @@ import java.net.Socket;
 
 public class FlightResourceManager extends BasicResourceManager {
 
-    public FlightResourceManager(Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream)
+    public FlightResourceManager(Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream, RMHashMap flight_data)
     {
-        super("FlightResourceManager", clientSocket, inputStream, outputStream);
+        super("FlightResourceManager", clientSocket, inputStream, outputStream, flight_data);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package Server.CarServer;
 
+import Server.Common.RMHashMap;
 import Server.Common.Trace;
 
 import java.io.ObjectInputStream;
@@ -11,6 +12,7 @@ import java.net.Socket;
 public class CarTCPServer {
 
     static int port = 6316;
+    static RMHashMap car_data = new RMHashMap();
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(port);
@@ -26,7 +28,7 @@ public class CarTCPServer {
 
                 outputStream.flush();
 
-                Thread t = new CarResourceManager(clientSocket, inputStream, outputStream);
+                Thread t = new CarResourceManager(clientSocket, inputStream, outputStream, car_data);
                 t.start();
 
             } catch (IOException e) {

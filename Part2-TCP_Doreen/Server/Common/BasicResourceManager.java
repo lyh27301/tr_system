@@ -10,16 +10,16 @@ import java.net.Socket;
 
 
 public abstract class BasicResourceManager extends Thread {
-	protected String m_name = "";
-	protected RMHashMap m_data = new RMHashMap();
+
+	protected RMHashMap m_data;
 
 	final Socket clientSocket;
 	final ObjectInputStream inputStream;
 	final ObjectOutputStream outputStream;
 
-	public BasicResourceManager(String p_name, Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream)
+	public BasicResourceManager(String p_name, Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream, RMHashMap p_data)
 	{
-		this.m_name = p_name;
+		this.m_data = p_data;
 		this.inputStream = inputStream;
 		this.outputStream = outputStream;
 		this.clientSocket = clientSocket;

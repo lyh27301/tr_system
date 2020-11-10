@@ -1,5 +1,6 @@
 package Server.CustomerServer;
 
+import Server.Common.RMHashMap;
 import Server.Common.Trace;
 
 import java.io.ObjectInputStream;
@@ -11,6 +12,7 @@ import java.net.Socket;
 public class CustomerTCPServer {
 
     static int port = 6516;
+    static RMHashMap customer_data = new RMHashMap();
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(port);
@@ -26,7 +28,7 @@ public class CustomerTCPServer {
 
                 outputStream.flush();
 
-                Thread t = new CustomerResourceManager(clientSocket, inputStream, outputStream);
+                Thread t = new CustomerResourceManager(clientSocket, inputStream, outputStream, customer_data);
                 t.start();
 
             } catch (IOException e) {
