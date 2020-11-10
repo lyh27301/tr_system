@@ -102,11 +102,6 @@ public class CustomerResourceManager extends BasicResourceManager {
                 else{
                     items = items + ","+reservedKey + "," +reserveditem.getCount();
                 }
-//                ReservableItem item  = (ReservableItem)readData(xid, reserveditem.getKey());
-//                Trace.info("RM::deleteCustomer(" + xid + ", " + customerID + ") has reserved " + reserveditem.getKey() + " which is reserved " +  item.getReserved() +  " times and is still available " + item.getCount() + " times");
-//                item.setReserved(item.getReserved() - reserveditem.getCount());
-//                item.setCount(item.getCount() + reserveditem.getCount());
-//                writeData(xid, item.getKey(), item);
             }
 
             // Remove the customer from the storage
@@ -138,11 +133,6 @@ public class CustomerResourceManager extends BasicResourceManager {
         Trace.info("RM::reserveItem(" + xid + ", customer=" + customerID + ", " + key + ", " + location + ") called" );
         // Read customer object if it exists (and read lock it)
         Customer customer = (Customer)readData(xid, Customer.getKey(customerID));
-//        if (customer == null)
-//        {
-//            Trace.warn("RM::reserveItem(" + xid + ", " + customerID + ", " + key + ", " + location + ")  failed--customer doesn't exist");
-//            return false;
-//        }
         customer.reserve(key, location, price);
         writeData(xid, customer.getKey(), customer);
 

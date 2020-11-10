@@ -58,7 +58,11 @@ public abstract class BasicResourceManager extends Thread {
 				}
 
 
-			}catch (IOException | ClassNotFoundException e) {
+			}catch (IOException e) {
+				Trace.warn("A client disconnected! Close the client connection in thread.");
+				break;
+			}catch (ClassNotFoundException e) {
+				Trace.error("Class Not Found Exception! See log for details. ");
 				e.printStackTrace();
 				break;
 			}
@@ -67,7 +71,7 @@ public abstract class BasicResourceManager extends Thread {
 			this.clientSocket.close();
 			this.inputStream.close();
 			this.outputStream.close();
-			Trace.info("Client connection is closed.");
+			Trace.info("Client connection is closed in a thread.");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

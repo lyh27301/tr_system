@@ -59,24 +59,20 @@ public class TCP_Client {
                 }
                 continue;
             }
-            outputStream.writeObject(new Message(command));
 
             if(parsed[0].equals("Quit")){
-                outputStream.writeObject(new Message(command));
-                String quitAck = ((Message)inputStream.readObject()).getMessageText();
-                System.out.println(quitAck);
+                System.out.println("Good bye!");
                 break;
             }
 
+            outputStream.writeObject(new Message(command));
             String response = ((Message)inputStream.readObject()).getMessageText();
             System.out.println(response);
-
         }
         stdin.close();
         inputStream.close();
         outputStream.close();
-        Trace.info("Server connection closed");
-
+        Trace.info("Server connection is closed");
     }
 
 

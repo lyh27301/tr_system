@@ -84,6 +84,7 @@ public class MiddlewareClientHandler extends Thread {
 
     @Override
     public void run() {
+
         while (true) {
             try {
                 try {
@@ -95,7 +96,8 @@ public class MiddlewareClientHandler extends Thread {
                     String command = parsed[0];
 
 
-                    if (command.equals("Quit")) {
+                    if (command.equals("Shutdown")) {
+                        /*
                         if (executeRequestInResourceManager(ServerType.CAR, receivedFromClient).equals("Quit Received")) {
                             Trace.info("Quitting the car server connection in a thread...");
                         }
@@ -111,24 +113,8 @@ public class MiddlewareClientHandler extends Thread {
 
                         clientOutputStream.writeObject(new Message("Good Bye"));
                         break;
+                        */
                     }
-
-                    //Don't remove this for now. Use it for debugging
-                /*
-                 else if (command.equals("ReadRemote")){
-                    Car car =  (Car) readRemoteObject (1, "car-montreal");
-                    String s = car!=null? car.toString(): "null";
-
-                    Trace.info("Get remote object "+ s);
-                    clientOutputStream.writeObject(new Message("Get remote object "+ s));
-                }
-
-                else if (command.equals("WriteRemote")){
-                    Car car = new Car("montreal", 15, 500);
-                    writeRemoteObject (1, "car-montreal", car);
-                    clientOutputStream.writeObject(new Message("write successful"));
-                }
-                */
 
 
                     if (command.equals("Start")) {
@@ -136,26 +122,37 @@ public class MiddlewareClientHandler extends Thread {
                         Message message = new Message("Transaction-" + xid + " has started");
                         message.setMessageObject(Integer.valueOf(xid));
                         clientOutputStream.writeObject(message);
-                        //clientOutputStream.writeObject(new Message("Transaction-" + xid + " has started"));
-                    } else if (!transactionManager.existsTransaction(Integer.parseInt(parsed[1]))) {
-                        clientOutputStream.writeObject(new Message("Transaction-" + parsed[1] + " hasn't been created yet."));
-                    } else if (command.equals("Commit")) {
+                        continue;
+                    }
+
+
+                    if (parsed.length > 1 && !transactionManager.existsTransaction(Integer.parseInt(parsed[1]))) {
+                        clientOutputStream.writeObject(new Message("Transaction-" + parsed[1] + " does not exist."));
+                        continue;
+                    }
+
+
+                    if (command.equals("Commit")) {
                         if (commit(Integer.parseInt(parsed[1]))) {
                             clientOutputStream.writeObject(new Message("Transaction-" + parsed[1] + " is committed"));
                         } else {
                             clientOutputStream.writeObject(new Message("Failed to commit Transaction-" + parsed[1]));
                         }
-                    } else if (command.equals("Abort")) {
+                        continue;
+                    }
+
+
+                    if (command.equals("Abort")) {
                         if (abort(Integer.parseInt(parsed[1]))) {
                             clientOutputStream.writeObject(new Message("Transaction-" + parsed[1] + " is aborted"));
                         } else {
                             clientOutputStream.writeObject(new Message("Failed to abort Transaction-" + parsed[1]));
                         }
-
+                        continue;
                     }
 
-                    //Choose the responsible service
-                    else if (command.equals("AddCars") || command.equals("DeleteCars") || command.equals("QueryCars")
+
+                    if (command.equals("AddCars") || command.equals("DeleteCars") || command.equals("QueryCars")
                             || command.equals("QueryCarsPrice")) {
 
                         TransactionLockObject.LockType lockType = (command.equals("AddCars") || command.equals("DeleteCars")) ?
@@ -163,7 +160,11 @@ public class MiddlewareClientHandler extends Thread {
                         beforeOperation(Integer.parseInt(parsed[1]), "car-" + parsed[2], lockType);
                         String response = executeRequestInResourceManager(ServerType.CAR, receivedFromClient);
                         clientOutputStream.writeObject(new Message(response));
-                    } else if (command.equals("AddFlight") || command.equals("DeleteFlight") || command.equals("QueryFlight")
+                        continue;
+                    }
+
+
+                    if (command.equals("AddFlight") || command.equals("DeleteFlight") || command.equals("QueryFlight")
                             || command.equals("QueryFlightPrice")) {
 
                         TransactionLockObject.LockType lockType = (command.equals("AddFlight") || command.equals("DeleteFlight")) ?
@@ -172,7 +173,11 @@ public class MiddlewareClientHandler extends Thread {
 
                         String response = executeRequestInResourceManager(ServerType.FLIGHT, receivedFromClient);
                         clientOutputStream.writeObject(new Message(response));
-                    } else if (command.equals("AddRooms") || command.equals("DeleteRooms") || command.equals("QueryRooms")
+                        continue;
+                    }
+
+
+                    if (command.equals("AddRooms") || command.equals("DeleteRooms") || command.equals("QueryRooms")
                             || command.equals("QueryRoomsPrice")) {
 
                         TransactionLockObject.LockType lockType = (command.equals("AddRooms") || command.equals("DeleteRooms")) ?
@@ -181,7 +186,11 @@ public class MiddlewareClientHandler extends Thread {
 
                         String response = executeRequestInResourceManager(ServerType.ROOM, receivedFromClient);
                         clientOutputStream.writeObject(new Message(response));
-                    } else if (command.equals("AddCustomer") || command.equals("AddCustomerID")
+                        continue;
+                    }
+
+
+                    if (command.equals("AddCustomer") || command.equals("AddCustomerID")
                             || command.equals("QueryCustomer")) {
 
                         TransactionLockObject.LockType lockType = (command.equals("AddCustomer") || command.equals("AddCustomerID")) ?
@@ -190,7 +199,11 @@ public class MiddlewareClientHandler extends Thread {
 
                         String response = executeRequestInResourceManager(ServerType.CUSTOMER, receivedFromClient);
                         clientOutputStream.writeObject(new Message(response));
-                    } else if (command.equals("ReserveRoom")) {
+                        continue;
+                    }
+
+
+                    if (command.equals("ReserveRoom")) {
                         if (checkCustomerExists(Integer.parseInt(parsed[1]), Integer.parseInt(parsed[2]))) {
                             TransactionLockObject.LockType lockType = TransactionLockObject.LockType.LOCK_WRITE;
                             beforeOperation(Integer.parseInt(parsed[1]), "room-" + parsed[3], lockType);
@@ -207,8 +220,11 @@ public class MiddlewareClientHandler extends Thread {
                         } else {
                             clientOutputStream.writeObject(new Message("Failed-Customer does not exists"));
                         }
+                        continue;
+                    }
 
-                    } else if (command.equals("ReserveFlight")) {
+
+                    if (command.equals("ReserveFlight")) {
                         if (checkCustomerExists(Integer.parseInt(parsed[1]), Integer.parseInt(parsed[2]))) {
                             TransactionLockObject.LockType lockType = TransactionLockObject.LockType.LOCK_WRITE;
                             beforeOperation(Integer.parseInt(parsed[1]), "flight-" + parsed[3], lockType);
@@ -225,7 +241,11 @@ public class MiddlewareClientHandler extends Thread {
                         } else {
                             clientOutputStream.writeObject(new Message("Failed-Customer does not exists"));
                         }
-                    } else if (command.equals("ReserveCar")) {
+                        continue;
+                    }
+
+
+                    if (command.equals("ReserveCar")) {
                         if (checkCustomerExists(Integer.parseInt(parsed[1]), Integer.parseInt(parsed[2]))) {
                             TransactionLockObject.LockType lockType = TransactionLockObject.LockType.LOCK_WRITE;
                             beforeOperation(Integer.parseInt(parsed[1]), "car-" + parsed[3], lockType);
@@ -242,8 +262,11 @@ public class MiddlewareClientHandler extends Thread {
                         } else {
                             clientOutputStream.writeObject(new Message("Failed-Customer does not exists"));
                         }
+                        continue;
+                    }
 
-                    } else if (command.equals("DeleteCustomer")) {
+
+                    if (command.equals("DeleteCustomer")) {
                         TransactionLockObject.LockType writeLockType = TransactionLockObject.LockType.LOCK_WRITE;
                         beforeOperation(Integer.parseInt(parsed[1]), "customer-" + parsed[2], writeLockType);
                         String response = executeRequestInResourceManager(ServerType.CUSTOMER, receivedFromClient);
@@ -273,48 +296,71 @@ public class MiddlewareClientHandler extends Thread {
                             }
                             clientOutputStream.writeObject(new Message("Customer was deleted and all his/her reservations were canceled"));
                         }
-                    } else if (command.equals("Bundle")) {
+                        continue;
+                    }
+
+
+                    if (command.equals("Bundle")) {
                         TransactionLockObject.LockType lockType = TransactionLockObject.LockType.LOCK_WRITE;
                         String response = executeBundleSendBackToClient(receivedFromClient);
                         clientOutputStream.writeObject(new Message(response));
-                    } else {
-                        clientOutputStream.writeObject(new Message("Unsupported command! Please check the user guide!"));
+                        continue;
                     }
+
+
+                    clientOutputStream.writeObject(new Message("Unsupported command! Please check the user guide!"));
+
 
                 } catch (InvalidTransactionException | DeadlockException e) {
                     clientOutputStream.writeObject(new Message(e.getMessage()));
+                } catch (IOException e) {
+                    //TODO: shutdown connections in current thread
+                    break;
                 }
-            } catch (IOException | ClassNotFoundException e) {
+                catch (Exception e) {
+                    clientOutputStream.writeObject(new Message("Unsupported command! Please check the user guide!"));
+                }
+            }catch(Exception e){
                 e.printStackTrace();
+                Trace.error("Unhandled Exception! Close connection in a thread.");
+                break;
             }
         }
+
+        //close connection in a thread
         try {
             carInputStream.close();
             carOutputStream.close();
+            carSocket.close();
             Trace.info("Car server connection is closed in a thread.");
 
             flightInputStream.close();
             flightOutputStream.close();
+            flightSocket.close();
             Trace.info("Flight server connection is closed in a thread.");
 
             roomInputStream.close();
             roomOutputStream.close();
+            roomSocket.close();
             Trace.info("Room server connection is closed in a thread.");
 
             customerInputStream.close();
             customerOutputStream.close();
+            customerSocket.close();
             Trace.info("Customer server connection is closed in a thread.");
 
-            this.clientSocket.close();
             this.clientOutputStream.close();
             this.clientInputStream.close();
+            this.clientSocket.close();
             Trace.info("Client connection is closed in a thread.");
 
         } catch (IOException e) {
-            e.printStackTrace();
+            Trace.error("Fail to close all resource manager server connection.");
+            //e.printStackTrace();
         }
-
     }
+
+
     private boolean checkCustomerExists(int xid, int customerID) throws IOException, ClassNotFoundException, InvalidTransactionException, DeadlockException {
         String checkCustomer = String.format("QueryCustomer,%d,%d",xid,customerID);
         beforeOperation(xid, "customer-"+customerID, TransactionLockObject.LockType.LOCK_READ);
@@ -577,10 +623,9 @@ public class MiddlewareClientHandler extends Thread {
                     this.customerOutputStream.flush();
                     break;
             }
-            System.out.println("connect server "+serverType.name()+" server.");
+            Trace.info("connect to "+serverType.name()+" server.");
         } catch (Exception e) {
-            Trace.error("Fail to connect server "+serverType.name()+" server.");
-            e.printStackTrace();
+            Trace.error("Fail to connect "+serverType.name()+" server.");
         }
     }
 

@@ -161,9 +161,9 @@ public class ClientTest implements Runnable{
             outputStream.writeObject(new Message("Commit,"+xid));
             response = ((Message)inputStream.readObject()).getMessageText();
             System.out.println(response);
-            outputStream.writeObject(new Message("Quit"));
-            response = ((Message)inputStream.readObject()).getMessageText();
-            System.out.println(response);
+            //outputStream.writeObject(new Message("Quit"));
+            //response = ((Message)inputStream.readObject()).getMessageText();
+            //System.out.println(response);
         } catch(Exception e){
             System.out.println(e.toString());
             System.exit(-1);
