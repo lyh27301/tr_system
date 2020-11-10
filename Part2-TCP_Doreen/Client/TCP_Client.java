@@ -59,13 +59,13 @@ public class TCP_Client {
                 }
                 continue;
             }
-            outputStream.writeObject(new Message(command));
 
             if(parsed[0].equals("Quit")){
                 System.out.println("Goodbye!");
                 break;
             }
 
+            outputStream.writeObject(new Message(command));
             String response = ((Message)inputStream.readObject()).getMessageText();
             System.out.println(response);
 
