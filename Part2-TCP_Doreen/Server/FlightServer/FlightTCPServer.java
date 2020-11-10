@@ -91,13 +91,9 @@ public class FlightTCPServer extends FlightResourceManager{
                     String response = manager.executeRequest(parsed);
                     outputStream.writeObject(new Message(response));
                 }
-                System.out.println("here1");
                 this.clientSocket.close();
-                System.out.println("here2");
                 this.inputStream.close();
-                System.out.println("here3");
                 this.outputStream.close();
-                System.out.println("here4");
                 Trace.info("Client connection is closed.");
 
             }catch (IOException | ClassNotFoundException e){
