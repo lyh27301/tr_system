@@ -30,7 +30,6 @@ public class TCP_Client {
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
 
         while (true) {
-
             // Read the next command
             String command = "";
             try {
@@ -65,14 +64,32 @@ public class TCP_Client {
                 break;
             }
 
-            outputStream.writeObject(new Message(command));
-            String response = ((Message)inputStream.readObject()).getMessageText();
-            System.out.println(response);
+            if(parsed[0].equals("Shutdown")){
+                outputStream.writeObject(new Message(command));
+                System.out.println("Server has been shutdown");
+                break;
+            }
+
+            try {
+                outputStream.writeObject(new Message(command));
+                String response = ((Message) inputStream.readObject()).getMessageText();
+                System.out.println(response);
+            }catch (IOException e){
+                break;
+            }
+
         }
+
         stdin.close();
-        inputStream.close();
-        outputStream.close();
-        Trace.info("Server connection is closed");
+        try{
+            s.close();
+            inputStream.close();
+            outputStream.close();
+            if (!s.isClosed()) s.close();
+        }catch (IOException e){
+            Trace.warn("Server has been shutdown");
+            return;
+        }
     }
 
 

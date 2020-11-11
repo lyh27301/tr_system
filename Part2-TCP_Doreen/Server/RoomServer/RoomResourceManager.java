@@ -4,6 +4,7 @@ import Server.Common.BasicResourceManager;
 import Server.Common.RMHashMap;
 import Server.Common.Room;
 import Server.Common.Trace;
+import Server.CustomerServer.CustomerTCPServer;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -15,6 +16,13 @@ public class RoomResourceManager extends BasicResourceManager {
     public RoomResourceManager(Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream, RMHashMap room_data)
     {
         super("RoomResourceManager", clientSocket, inputStream, outputStream, room_data);
+    }
+
+    @Override
+    public void executeShutdownRequest() {
+        synchronized (RoomTCPServer.shutdownSignal) {
+            RoomTCPServer.shutdownSignal.notify();
+        }
     }
 
     @Override

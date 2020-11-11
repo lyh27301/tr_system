@@ -1,5 +1,6 @@
 package Server.FlightServer;
 
+import Server.CarServer.CarTCPServer;
 import Server.Common.BasicResourceManager;
 import Server.Common.Flight;
 import Server.Common.RMHashMap;
@@ -15,6 +16,13 @@ public class FlightResourceManager extends BasicResourceManager {
     public FlightResourceManager(Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream, RMHashMap flight_data)
     {
         super("FlightResourceManager", clientSocket, inputStream, outputStream, flight_data);
+    }
+
+    @Override
+    public void executeShutdownRequest() {
+        synchronized (FlightTCPServer.shutdownSignal) {
+            FlightTCPServer.shutdownSignal.notify();
+        }
     }
 
     @Override

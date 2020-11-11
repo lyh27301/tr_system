@@ -5,6 +5,7 @@ import Server.Common.BasicResourceManager;
 import Server.Common.Car;
 import Server.Common.RMHashMap;
 import Server.Common.Trace;
+import Server.MiddlewareServer.MiddlewareServer;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -19,8 +20,16 @@ public class CarResourceManager extends BasicResourceManager {
 	}
 
 	@Override
+	public void executeShutdownRequest() {
+		synchronized (CarTCPServer.shutdownSignal) {
+			CarTCPServer.shutdownSignal.notify();
+		}
+	}
+
+	@Override
 	public String executeRequest(String[] parsed) {
 		String response = "";
+
 		if (parsed[0].equals("AddCars")){
 			if (addCars(stringToInt(parsed[1]), parsed[2], stringToInt(parsed[3]), stringToInt(parsed[4]))) {
 				response = "Cars added";

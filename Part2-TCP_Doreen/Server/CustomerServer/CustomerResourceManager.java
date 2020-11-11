@@ -1,6 +1,7 @@
 package Server.CustomerServer;
 
 import Server.Common.*;
+import Server.FlightServer.FlightTCPServer;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -12,6 +13,13 @@ public class CustomerResourceManager extends BasicResourceManager {
     public CustomerResourceManager(Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream, RMHashMap customer_data)
     {
         super("CustomerResourceManager", clientSocket, inputStream, outputStream, customer_data);
+    }
+
+    @Override
+    public void executeShutdownRequest() {
+        synchronized (CustomerTCPServer.shutdownSignal) {
+            CustomerTCPServer.shutdownSignal.notify();
+        }
     }
 
     @Override

@@ -3,6 +3,8 @@
 package Server.Common;
 
 
+import Server.MiddlewareServer.MiddlewareServer;
+
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.IOException;
@@ -34,10 +36,9 @@ public abstract class BasicResourceManager extends Thread {
 
 				String[] parsed = received.split(",");
 
-				if (parsed[0].equals("Quit")){
-					outputStream.writeObject(new Message("Quit Received"));
-					Trace.info("Quitting a client connection...");
-					break;
+				if (parsed[0].equals("Shutdown")){
+					executeShutdownRequest();
+					return;
 				}
 
 				if (parsed[0].equals("ReadObject")){
@@ -59,7 +60,7 @@ public abstract class BasicResourceManager extends Thread {
 
 
 			}catch (IOException e) {
-				Trace.warn("A client disconnected! Close the client connection in thread.");
+				Trace.warn("A client is disconnected! Close the client connection in thread.");
 				break;
 			}catch (ClassNotFoundException e) {
 				Trace.error("Class Not Found Exception! See log for details. ");
@@ -79,6 +80,7 @@ public abstract class BasicResourceManager extends Thread {
 	}
 
 	public abstract String executeRequest(String[] parsed);
+	public abstract void executeShutdownRequest();
 
 	protected int stringToInt(String s){
 		return Integer.valueOf(s);

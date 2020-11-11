@@ -97,23 +97,15 @@ public class MiddlewareClientHandler extends Thread {
 
 
                     if (command.equals("Shutdown")) {
-                        /*
-                        if (executeRequestInResourceManager(ServerType.CAR, receivedFromClient).equals("Quit Received")) {
-                            Trace.info("Quitting the car server connection in a thread...");
-                        }
-                        if (executeRequestInResourceManager(ServerType.FLIGHT, receivedFromClient).equals("Quit Received")) {
-                            Trace.info("Quitting the flight server connection in a thread...");
-                        }
-                        if (executeRequestInResourceManager(ServerType.ROOM, receivedFromClient).equals("Quit Received")) {
-                            Trace.info("Quitting the room server connection in a thread...");
-                        }
-                        if (executeRequestInResourceManager(ServerType.CUSTOMER, receivedFromClient).equals("Quit Received")) {
-                            Trace.info("Quitting the customer server connection in a thread...");
-                        }
+                        this.carOutputStream.writeObject(new Message(command));
+                        this.flightOutputStream.writeObject(new Message(command));
+                        this.customerOutputStream.writeObject(new Message(command));
+                        this.roomOutputStream.writeObject(new Message(command));
 
-                        clientOutputStream.writeObject(new Message("Good Bye"));
-                        break;
-                        */
+                        synchronized (MiddlewareServer.shutdownSignal) {
+                            MiddlewareServer.shutdownSignal.notify();
+                        }
+                        return;
                     }
 
 
@@ -314,7 +306,7 @@ public class MiddlewareClientHandler extends Thread {
                 } catch (InvalidTransactionException | DeadlockException e) {
                     clientOutputStream.writeObject(new Message(e.getMessage()));
                 } catch (IOException e) {
-                    //TODO: shutdown connections in current thread
+                    Trace.warn("A client is disconnected! Close the client connection in thread.");
                     break;
                 }
                 catch (Exception e) {
