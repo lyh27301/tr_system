@@ -55,6 +55,8 @@ public class MiddlewareClientHandler extends Thread {
 
     TransactionManager transactionManager;
 
+    String timeoutMessage = "";
+
 
     public MiddlewareClientHandler(Socket clientSocket,
                                    ObjectInputStream inputStream,
@@ -95,6 +97,11 @@ public class MiddlewareClientHandler extends Thread {
                     String[] parsed = receivedFromClient.split(",");
                     String command = parsed[0];
 
+                    timeoutMessage = MiddlewareServer.getTimeoutTransaction();
+                    if (!timeoutMessage.equals("")){
+                        timeoutMessage = "\nInactive transaction timeout! Transaction ID: " + timeoutMessage;
+                    }
+
 
                     if (command.equals("Shutdown")) {
                         this.carOutputStream.writeObject(new Message(command));
@@ -111,7 +118,7 @@ public class MiddlewareClientHandler extends Thread {
 
                     if (command.equals("Start")) {
                         int xid = startTransaction();
-                        Message message = new Message("Transaction-" + xid + " has started");
+                        Message message = new Message("Transaction-" + xid + " has started" + timeoutMessage);
                         message.setMessageObject(Integer.valueOf(xid));
                         clientOutputStream.writeObject(message);
                         continue;
@@ -119,16 +126,16 @@ public class MiddlewareClientHandler extends Thread {
 
 
                     if (parsed.length > 1 && !transactionManager.existsTransaction(Integer.parseInt(parsed[1]))) {
-                        clientOutputStream.writeObject(new Message("Transaction-" + parsed[1] + " does not exist."));
+                        clientOutputStream.writeObject(new Message("Transaction-" + parsed[1] + " does not exist." + timeoutMessage));
                         continue;
                     }
 
 
                     if (command.equals("Commit")) {
                         if (commit(Integer.parseInt(parsed[1]))) {
-                            clientOutputStream.writeObject(new Message("Transaction-" + parsed[1] + " is committed"));
+                            clientOutputStream.writeObject(new Message("Transaction-" + parsed[1] + " is committed" + timeoutMessage));
                         } else {
-                            clientOutputStream.writeObject(new Message("Failed to commit Transaction-" + parsed[1]));
+                            clientOutputStream.writeObject(new Message("Failed to commit Transaction-" + parsed[1]) + timeoutMessage);
                         }
                         continue;
                     }
@@ -136,9 +143,9 @@ public class MiddlewareClientHandler extends Thread {
 
                     if (command.equals("Abort")) {
                         if (abort(Integer.parseInt(parsed[1]))) {
-                            clientOutputStream.writeObject(new Message("Transaction-" + parsed[1] + " is aborted"));
+                            clientOutputStream.writeObject(new Message("Transaction-" + parsed[1] + " is aborted") + timeoutMessage);
                         } else {
-                            clientOutputStream.writeObject(new Message("Failed to abort Transaction-" + parsed[1]));
+                            clientOutputStream.writeObject(new Message("Failed to abort Transaction-" + parsed[1]) + timeoutMessage);
                         }
                         continue;
                     }
@@ -201,7 +208,7 @@ public class MiddlewareClientHandler extends Thread {
                             beforeOperation(Integer.parseInt(parsed[1]), "room-" + parsed[3], lockType);
                             String response = executeRequestInResourceManager(ServerType.ROOM, receivedFromClient);
                             if (response.equals("false")) {
-                                clientOutputStream.writeObject(new Message("Room could not be reserved"));
+                                clientOutputStream.writeObject(new Message("Room could not be reserved" + timeoutMessage));
                             } else {
                                 String request = "ReserveItem," + parsed[1] + "," + parsed[2] + "," + Room.getKey(parsed[3]) + "," + parsed[3] + "," + Integer.valueOf(response);
                                 TransactionLockObject.LockType customerLockType = TransactionLockObject.LockType.LOCK_WRITE;
@@ -210,7 +217,7 @@ public class MiddlewareClientHandler extends Thread {
                                 clientOutputStream.writeObject(new Message(response));
                             }
                         } else {
-                            clientOutputStream.writeObject(new Message("Failed-Customer does not exists"));
+                            clientOutputStream.writeObject(new Message("Failed-Customer does not exists" + timeoutMessage));
                         }
                         continue;
                     }
@@ -222,7 +229,7 @@ public class MiddlewareClientHandler extends Thread {
                             beforeOperation(Integer.parseInt(parsed[1]), "flight-" + parsed[3], lockType);
                             String response = executeRequestInResourceManager(ServerType.FLIGHT, receivedFromClient);
                             if (response.equals("false")) {
-                                clientOutputStream.writeObject(new Message("Flight could not be reserved"));
+                                clientOutputStream.writeObject(new Message("Flight could not be reserved" + timeoutMessage));
                             } else {
                                 String request = "ReserveItem," + parsed[1] + "," + parsed[2] + "," + Flight.getKey(Integer.parseInt(parsed[3])) + "," + parsed[3] + "," + Integer.valueOf(response);
                                 TransactionLockObject.LockType customerLockType = TransactionLockObject.LockType.LOCK_WRITE;
@@ -231,7 +238,7 @@ public class MiddlewareClientHandler extends Thread {
                                 clientOutputStream.writeObject(new Message(response));
                             }
                         } else {
-                            clientOutputStream.writeObject(new Message("Failed-Customer does not exists"));
+                            clientOutputStream.writeObject(new Message("Failed-Customer does not exists" + timeoutMessage));
                         }
                         continue;
                     }
@@ -243,7 +250,7 @@ public class MiddlewareClientHandler extends Thread {
                             beforeOperation(Integer.parseInt(parsed[1]), "car-" + parsed[3], lockType);
                             String response = executeRequestInResourceManager(ServerType.CAR, receivedFromClient);
                             if (response.equals("false")) {
-                                clientOutputStream.writeObject(new Message("Car could not be reserved"));
+                                clientOutputStream.writeObject(new Message("Car could not be reserved" + timeoutMessage));
                             } else {
                                 String request = "ReserveItem," + parsed[1] + "," + parsed[2] + "," + Car.getKey(parsed[3]) + "," + parsed[3] + "," + Integer.valueOf(response);
                                 TransactionLockObject.LockType customerLockType = TransactionLockObject.LockType.LOCK_WRITE;
@@ -252,7 +259,7 @@ public class MiddlewareClientHandler extends Thread {
                                 clientOutputStream.writeObject(new Message(response));
                             }
                         } else {
-                            clientOutputStream.writeObject(new Message("Failed-Customer does not exists"));
+                            clientOutputStream.writeObject(new Message("Failed-Customer does not exists" + timeoutMessage));
                         }
                         continue;
                     }
@@ -263,9 +270,9 @@ public class MiddlewareClientHandler extends Thread {
                         beforeOperation(Integer.parseInt(parsed[1]), "customer-" + parsed[2], writeLockType);
                         String response = executeRequestInResourceManager(ServerType.CUSTOMER, receivedFromClient);
                         if (response.equals("false")) {
-                            clientOutputStream.writeObject(new Message("Failed-Customer does not exists"));
+                            clientOutputStream.writeObject(new Message("Failed-Customer does not exists" + timeoutMessage));
                         } else if (response.equals("")) {
-                            clientOutputStream.writeObject(new Message("Customer does not any reservation and was deleted successfully."));
+                            clientOutputStream.writeObject(new Message("Customer does not any reservation and was deleted successfully." + timeoutMessage));
                         } else {
                             String[] reservations = response.split(",");
                             int count = 0;
@@ -286,7 +293,7 @@ public class MiddlewareClientHandler extends Thread {
                                 }
                                 count += 2;
                             }
-                            clientOutputStream.writeObject(new Message("Customer was deleted and all his/her reservations were canceled"));
+                            clientOutputStream.writeObject(new Message("Customer was deleted and all his/her reservations were canceled" + timeoutMessage));
                         }
                         continue;
                     }
@@ -300,17 +307,17 @@ public class MiddlewareClientHandler extends Thread {
                     }
 
 
-                    clientOutputStream.writeObject(new Message("Unsupported command! Please check the user guide!"));
+                    clientOutputStream.writeObject(new Message("Unsupported command! Please check the user guide!" + timeoutMessage));
 
 
                 } catch (InvalidTransactionException | DeadlockException e) {
-                    clientOutputStream.writeObject(new Message(e.getMessage()));
+                    clientOutputStream.writeObject(new Message(e.getMessage() + timeoutMessage));
                 } catch (IOException e) {
                     Trace.warn("A client is disconnected! Close the client connection in thread.");
                     break;
                 }
                 catch (Exception e) {
-                    clientOutputStream.writeObject(new Message("Unsupported command! Please check the user guide!"));
+                    clientOutputStream.writeObject(new Message("Unsupported command! Please check the user guide!" + timeoutMessage));
                 }
             }catch(Exception e){
                 e.printStackTrace();
@@ -383,7 +390,7 @@ public class MiddlewareClientHandler extends Thread {
                 response = ((Message)customerInputStream.readObject()).getMessageText();
                 break;
         }
-        return response;
+        return response + timeoutMessage;
     }
 
     public RMItem readRemoteObject (int xid, String key) throws IOException, ClassNotFoundException {
@@ -656,7 +663,6 @@ public class MiddlewareClientHandler extends Thread {
     }
 
     public boolean abort(int xid) throws InvalidTransactionException {
-        System.out.println("abort method in client handler starts");
         HashMap<String, RMItem> transactionHistory = transactionManager.getTransactionHistory(xid);
 
         for (Map.Entry<String, RMItem> entry : transactionHistory.entrySet()) {

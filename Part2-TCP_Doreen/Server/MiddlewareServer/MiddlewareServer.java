@@ -20,6 +20,29 @@ public class MiddlewareServer {
     static TransactionManager transactionManager = new TransactionManager();
     static ArrayList<ClientConnection> allThreadsConnections = new ArrayList<>();
 
+    static ArrayList<Integer> timeoutTransactions = new ArrayList<>();
+
+    static void addTimeoutTransaction(int xid){
+        synchronized (timeoutTransactions){
+            timeoutTransactions.add(xid);
+        }
+    }
+
+    static String getTimeoutTransaction () {
+        synchronized (timeoutTransactions){
+            String s = "";
+            for (int i=0; i<timeoutTransactions.size(); i++){
+                if (i==0) {
+                    s = s + timeoutTransactions.get(i);
+                } else {
+                    s = s + ", " + timeoutTransactions.get(i);
+                }
+            }
+            timeoutTransactions.clear();
+            return s;
+        }
+    }
+
 
 
     static Object shutdownSignal = new Object();

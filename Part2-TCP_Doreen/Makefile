@@ -12,8 +12,8 @@ RoomServer: Server/Common/*.java Server/RoomServer/*.java
 CustomerServer: Server/Common/*.java Server/CustomerServer/*.java
 	javac Server/Common/*.java Server/CustomerServer/*.java
 
-MiddlewareServer: Server/Common/*.java Server/MiddlewareServer/*.java
-	javac Server/Common/*.java Server/MiddlewareServer/*.java
+MiddlewareServer: Server/Common/*.java Server/MiddlewareServer/*.java Server/LockManager/*.java
+	javac Server/Common/*.java Server/MiddlewareServer/*.java Server/LockManager/*.java
 
 TCPClient: Server/Common/*.java Client/TCP_Client.java
 	javac Server/Common/*.java Client/TCP_Client.java
@@ -27,3 +27,4 @@ clean:
 	rm -f Server/MiddlewareServer/*.class
 	rm -f Client/*.class
 	rm -f Server/CustomerServer/*.class
+	rm -f Server/LockManager/*.class
