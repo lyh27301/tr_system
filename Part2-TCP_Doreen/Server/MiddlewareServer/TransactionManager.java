@@ -13,7 +13,7 @@ public class TransactionManager {
     private HashMap<Integer, Transaction> allTransactions = new HashMap<>();
     private HashMap<Integer, TransactionTimeout> timeoutHashMap = new HashMap<>();
     private LockManager lockManager = new LockManager();
-    volatile private int idCounter = 0;
+    volatile private int idCounter = -1;
 
     synchronized public int createNewTransaction() {
         int xid = idCounter + 1;

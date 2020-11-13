@@ -27,7 +27,7 @@ public class TransactionTimeout implements Runnable {
                 TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {}
             transaction.increaseTimeCounter();
-        } while(transaction.getTimeCounter() < 10);
+        } while(transaction.getTimeCounter() < 45);
         // No new incoming commands for 30 seconds, abort the transaction.
         int xid = transaction.getXid();
         try {

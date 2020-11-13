@@ -189,10 +189,35 @@ public class MiddlewareClientHandler extends Thread {
                     }
 
 
-                    if (command.equals("AddCustomer") || command.equals("AddCustomerID")
-                            || command.equals("QueryCustomer")) {
+                    if (command.equals("AddCustomer")) {
 
-                        TransactionLockObject.LockType lockType = (command.equals("AddCustomer") || command.equals("AddCustomerID")) ?
+                        String response = executeRequestInResourceManager(ServerType.CUSTOMER, receivedFromClient);
+                        int cid = Integer.parseInt(response.split(": ")[1]);
+                        TransactionLockObject.LockType lockType = TransactionLockObject.LockType.LOCK_WRITE;
+
+
+                        try {
+                            if (!transactionManager.aquireLock(Integer.parseInt(parsed[1]), "customer-" + cid, lockType)) {
+                                throw new InvalidTransactionException(Integer.parseInt(parsed[1]), "Failed to aquire lock. Invalid Parameters.");
+                            }
+                        } catch (DeadlockException e) {
+                            Trace.warn("Deadlock on object (" + "customer-" + cid + ")");
+                            abort(Integer.parseInt(parsed[1]));
+                            throw new DeadlockException(Integer.parseInt(parsed[1]), "Transaction-"+Integer.parseInt(parsed[1])+" is aborted. Please try again later.");
+                        }
+
+                        if (!transactionManager.containsData(Integer.parseInt(parsed[1]), "customer-" + cid)) {
+                            transactionManager.addBeforeImage(Integer.parseInt(parsed[1]), "customer-" + cid, null);
+                        }
+                        transactionManager.getTransaction(Integer.parseInt(parsed[1])).zeroTimeCounter();
+
+                        clientOutputStream.writeObject(new Message(response));
+                        continue;
+                    }
+
+
+                    if (command.equals("AddCustomerID") || command.equals("QueryCustomer")) {
+                        TransactionLockObject.LockType lockType = command.equals("AddCustomerID")?
                                 TransactionLockObject.LockType.LOCK_WRITE : TransactionLockObject.LockType.LOCK_READ;
                         beforeOperation(Integer.parseInt(parsed[1]), "customer-" + parsed[2], lockType);
 
@@ -669,10 +694,8 @@ public class MiddlewareClientHandler extends Thread {
             String key = entry.getKey();
             RMItem value = entry.getValue();
             try {
-                System.out.println("try1");
                 writeRemoteObject(xid, key, value);
             } catch (Exception e) {
-                System.out.println("catch1");
                 throw new InvalidTransactionException(xid, "Failed to undo operations on object (" + key + ")");
             }
         }
@@ -680,7 +703,6 @@ public class MiddlewareClientHandler extends Thread {
         if (transactionManager.releaseLockAndRemoveTransaction (xid)) {
             return true;
         }else{
-            System.out.println("throw2");
             throw new InvalidTransactionException(xid, "Failed to release all locks held by Transaction-"+ xid);
         }
 
