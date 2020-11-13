@@ -13,10 +13,10 @@ public class ClientTest implements Runnable{
 
     static int middlewarePort = 6116;
     static String middlewareHost = "localhost";
-    public static int numberOfClients = 10;
-    public long startTime = 0;
-    public double throughput = 1.0;
-    public long[] times = new long[50];
+    static int numberOfClients = 1;
+    public long startTimeOfClient = 0;
+    static double throughput = 100;
+    public long[] data = new long[50];
     public static void main (String[] args) throws Exception{
 
         if (args.length > 0) middlewareHost = args[0];
@@ -27,7 +27,7 @@ public class ClientTest implements Runnable{
             Thread[] thread = new Thread[numberOfClients];
             for (int i = 0; i < numberOfClients; i++) {
                 c[i] = new ClientTest();
-                c[i].startTime = startTime;
+                c[i].startTimeOfClient = startTime;
                 if (i == 0)
                     setupDB();
                 thread[i] = new Thread(c[i]);
@@ -39,12 +39,12 @@ public class ClientTest implements Runnable{
             }
             System.out.println("Response Time\n\n");
             for (int i = 0; i < numberOfClients; i++) {
-                for (int j = 0; j < c[i].times.length; j++) {
-                        System.out.print(c[i].times[j]);
-                        if (j!= c[i].times.length - 1)
-                            System.out.print(",");
+                for (int j = 0; j < c[i].data.length; j++) {
+                    System.out.print(c[i].data[j]);
+                    if (j!= c[i].data.length - 1)
+                        System.out.print(",");
                 }
-                    System.out.println();
+                System.out.println();
             }
             System.out.println();
 
@@ -65,7 +65,7 @@ public class ClientTest implements Runnable{
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
-        Socket s = null;
+        Socket s;
         ObjectInputStream inputStream = null;
         ObjectOutputStream outputStream = null;
 
@@ -79,24 +79,24 @@ public class ClientTest implements Runnable{
         }
 
         int waitTime = (int)((1000 * numberOfClients) / throughput);
-        long variation = 30;
+        long variation = 31;
 
-        while (System.currentTimeMillis() < startTime){}
+        while (System.currentTimeMillis() < startTimeOfClient){}
 
         for (int i = (int)Thread.currentThread().getId()*200; i < (int)Thread.currentThread().getId()*200 + 150; i++) {
-            double l = Math.random();
-            int v;
-            if (l < 0.5)
-                v = waitTime - ((int)(variation*Math.random()));
+            int interval;
+            if (Math.random() < 0.5)
+                interval = waitTime - ((int)(variation*Math.random()));
             else
-                v = waitTime + ((int)(variation*Math.random()));
+                interval = waitTime + ((int)(variation*Math.random()));
             try {
                 long rt = oneRMTransaction(inputStream,outputStream);
                 if (i >= (int)Thread.currentThread().getId()*200 + 100)
-                    times[i - ((int)Thread.currentThread().getId()*200 + 100)] = rt;
-                if ((int)(v - rt) < 0)
+                    data[i - ((int)Thread.currentThread().getId()*200 + 100)] = rt;
+                System.out.println("sleep" + (int)(interval - rt));
+                if ((int)(interval - rt) < 0)
                     continue;
-                Thread.sleep((int) (v - rt));
+                Thread.sleep((int) (interval - rt));
             } catch(Exception e){}
         }
         try {
@@ -161,9 +161,9 @@ public class ClientTest implements Runnable{
             outputStream.writeObject(new Message("Commit,"+xid));
             response = ((Message)inputStream.readObject()).getMessageText();
             System.out.println(response);
-            //outputStream.writeObject(new Message("Quit"));
-            //response = ((Message)inputStream.readObject()).getMessageText();
-            //System.out.println(response);
+            outputStream.writeObject(new Message("Quit"));
+//            response = ((Message)inputStream.readObject()).getMessageText();
+            System.out.println("Good bye!");
         } catch(Exception e){
             System.out.println(e.toString());
             System.exit(-1);
@@ -174,7 +174,7 @@ public class ClientTest implements Runnable{
         System.out.println("End setup");
     }
     private long oneRMTransaction(ObjectInputStream inputStream, ObjectOutputStream outputStream) throws Exception{
-        long startTime = System.currentTimeMillis();
+        long startTxn = System.currentTimeMillis();
         int key = (int)(Math.random()*100 + 1);
         int customerID = (int)(Math.random()*500 + 1);
         outputStream.writeObject(new Message("Start"));
@@ -183,38 +183,74 @@ public class ClientTest implements Runnable{
         System.out.println(response);
         int xid = (int)(msg.getMessageObject());
         System.out.println(xid);
-        //int xid = Integer.valueOf(response);
         outputStream.writeObject(new Message("QueryFlight,"+ xid +","+key));
         response = ((Message)inputStream.readObject()).getMessageText();
+
+        if(response.equals("The transaction "+xid+" is deadlocked:"+"Transaction-"+xid+" is aborted. Please try again later."))
+        {
+            System.out.println(response);
+            long responseTime = System.currentTimeMillis() - startTxn;
+            return responseTime;
+        }
         System.out.println(response);
         outputStream.writeObject(new Message("ReserveFlight,"+ xid +","+customerID+","+key));
         response = ((Message)inputStream.readObject()).getMessageText();
+        if(response.equals("The transaction "+xid+" is deadlocked:"+"Transaction-"+xid+" is aborted. Please try again later."))
+        {
+            System.out.println(response);
+            long responseTime = System.currentTimeMillis() - startTxn;
+            return responseTime;
+        }
         System.out.println(response);
-        key = (int)(Math.random()*100 + 1);
-        customerID = (int)(Math.random()*500 + 1);
+//        key = (int)(Math.random()*100 + 1);
+//        customerID = (int)(Math.random()*500 + 1);
         outputStream.writeObject(new Message("QueryFlight,"+ xid +","+key));
         response = ((Message)inputStream.readObject()).getMessageText();
+        if(response.equals("The transaction "+xid+" is deadlocked:"+"Transaction-"+xid+" is aborted. Please try again later."))
+        {
+            System.out.println(response);
+            long responseTime = System.currentTimeMillis() - startTxn;
+            return responseTime;
+        }
         System.out.println(response);
         outputStream.writeObject(new Message("ReserveFlight,"+ xid +","+customerID+","+key));
         response = ((Message)inputStream.readObject()).getMessageText();
+        if(response.equals("The transaction "+xid+" is deadlocked:"+"Transaction-"+xid+" is aborted. Please try again later."))
+        {
+            System.out.println(response);
+            long responseTime = System.currentTimeMillis() - startTxn;
+            return responseTime;
+        }
         System.out.println(response);
-        key = (int)(Math.random()*100 + 1);
-        customerID = (int)(Math.random()*500 + 1);
+//        key = (int)(Math.random()*100 + 1);
+//        customerID = (int)(Math.random()*500 + 1);
         outputStream.writeObject(new Message("QueryFlight,"+ xid +","+key));
         response = ((Message)inputStream.readObject()).getMessageText();
+        if(response.equals("The transaction "+xid+" is deadlocked:"+"Transaction-"+xid+" is aborted. Please try again later."))
+        {
+            System.out.println(response);
+            long responseTime = System.currentTimeMillis() - startTxn;
+            return responseTime;
+        }
         System.out.println(response);
         outputStream.writeObject(new Message("ReserveFlight,"+ xid +","+customerID+","+key));
         response = ((Message)inputStream.readObject()).getMessageText();
+        if(response.equals("The transaction "+xid+" is deadlocked:"+"Transaction-"+xid+" is aborted. Please try again later."))
+        {
+            System.out.println(response);
+            long responseTime = System.currentTimeMillis() - startTxn;
+            return responseTime;
+        }
         System.out.println(response);
         outputStream.writeObject(new Message("Commit,"+xid));
         response = ((Message)inputStream.readObject()).getMessageText();
         System.out.println(response);
-        long responseTime = System.currentTimeMillis() - startTime;
+        long responseTime = System.currentTimeMillis() - startTxn;
         return responseTime;
     }
 
     private long threeRMTransaction(ObjectInputStream inputStream, ObjectOutputStream outputStream) throws Exception{
-        long startTime = System.currentTimeMillis();
+        long startTxn = System.currentTimeMillis();
         int key = (int)(Math.random()*100 + 1);
         int customerID = (int)(Math.random()*500 + 1);
         outputStream.writeObject(new Message("Start"));
@@ -225,27 +261,62 @@ public class ClientTest implements Runnable{
         System.out.println(xid);
         outputStream.writeObject(new Message("QueryFlight,"+ xid +","+key));
         response = ((Message)inputStream.readObject()).getMessageText();
+        if(response.equals("The transaction "+xid+" is deadlocked:"+"Transaction-"+xid+" is aborted. Please try again later."))
+        {
+            System.out.println(response);
+            long responseTime = System.currentTimeMillis() - startTxn;
+            return responseTime;
+        }
         System.out.println(response);
         outputStream.writeObject(new Message("ReserveFlight,"+ xid +","+customerID+","+key));
         response = ((Message)inputStream.readObject()).getMessageText();
+        if(response.equals("The transaction "+xid+" is deadlocked:"+"Transaction-"+xid+" is aborted. Please try again later."))
+        {
+            System.out.println(response);
+            long responseTime = System.currentTimeMillis() - startTxn;
+            return responseTime;
+        }
         System.out.println(response);
         outputStream.writeObject(new Message("QueryCars,"+ xid +","+"Montreal"+key));
         response = ((Message)inputStream.readObject()).getMessageText();
+        if(response.equals("The transaction "+xid+" is deadlocked:"+"Transaction-"+xid+" is aborted. Please try again later."))
+        {
+            System.out.println(response);
+            long responseTime = System.currentTimeMillis() - startTxn;
+            return responseTime;
+        }
         System.out.println(response);
         outputStream.writeObject(new Message("ReserveCar,"+ xid +","+customerID+","+"Montreal"+key));
         response = ((Message)inputStream.readObject()).getMessageText();
+        if(response.equals("The transaction "+xid+" is deadlocked:"+"Transaction-"+xid+" is aborted. Please try again later."))
+        {
+            System.out.println(response);
+            long responseTime = System.currentTimeMillis() - startTxn;
+            return responseTime;
+        }
         System.out.println(response);
         outputStream.writeObject(new Message("QueryRooms,"+ xid +","+"Montreal"+key));
         response = ((Message)inputStream.readObject()).getMessageText();
+        if(response.equals("The transaction "+xid+" is deadlocked:"+"Transaction-"+xid+" is aborted. Please try again later."))
+        {
+            System.out.println(response);
+            long responseTime = System.currentTimeMillis() - startTxn;
+            return responseTime;
+        }
         System.out.println(response);
         outputStream.writeObject(new Message("ReserveRoom,"+ xid +","+customerID+","+"Montreal"+key));
         response = ((Message)inputStream.readObject()).getMessageText();
+        if(response.equals("The transaction "+xid+" is deadlocked:"+"Transaction-"+xid+" is aborted. Please try again later."))
+        {
+            System.out.println(response);
+            long responseTime = System.currentTimeMillis() - startTxn;
+            return responseTime;
+        }
         System.out.println(response);
         outputStream.writeObject(new Message("Commit,"+xid));
         response = ((Message)inputStream.readObject()).getMessageText();
         System.out.println(response);
-        long responseTime = System.currentTimeMillis() - startTime;
+        long responseTime = System.currentTimeMillis() - startTxn;
         return responseTime;
     }
 }
-
