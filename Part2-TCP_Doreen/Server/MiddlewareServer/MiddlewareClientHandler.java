@@ -135,7 +135,7 @@ public class MiddlewareClientHandler extends Thread {
                         if (commit(Integer.parseInt(parsed[1]))) {
                             clientOutputStream.writeObject(new Message("Transaction-" + parsed[1] + " is committed" + timeoutMessage));
                         } else {
-                            clientOutputStream.writeObject(new Message("Failed to commit Transaction-" + parsed[1]) + timeoutMessage);
+                            clientOutputStream.writeObject(new Message("Failed to commit Transaction-" + parsed[1] + timeoutMessage) );
                         }
                         continue;
                     }
@@ -143,9 +143,9 @@ public class MiddlewareClientHandler extends Thread {
 
                     if (command.equals("Abort")) {
                         if (abort(Integer.parseInt(parsed[1]))) {
-                            clientOutputStream.writeObject(new Message("Transaction-" + parsed[1] + " is aborted") + timeoutMessage);
+                            clientOutputStream.writeObject(new Message("Transaction-" + parsed[1] + " is aborted" + timeoutMessage));
                         } else {
-                            clientOutputStream.writeObject(new Message("Failed to abort Transaction-" + parsed[1]) + timeoutMessage);
+                            clientOutputStream.writeObject(new Message("Failed to abort Transaction-" + parsed[1]+ timeoutMessage) );
                         }
                         continue;
                     }

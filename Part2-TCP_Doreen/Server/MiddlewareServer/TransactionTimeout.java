@@ -11,6 +11,7 @@ public class TransactionTimeout implements Runnable {
     Transaction transaction = null;
     MiddlewareClientHandler handler;
     int xid;
+    boolean isStart = true;
 
     public TransactionTimeout(int xid, TransactionManager manager, MiddlewareClientHandler handler) {
         this.manager = manager;
@@ -22,16 +23,17 @@ public class TransactionTimeout implements Runnable {
     public void run() {
         do {
             transaction = manager.getTransaction(xid);
-            if(transaction == null) continue;
+            if(transaction == null && isStart) continue;
+            if(transaction == null && !isStart) return;
+            isStart = false;
             try {
                 TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {}
             transaction.increaseTimeCounter();
-        } while(transaction.getTimeCounter() < 45);
+        } while(transaction.getTimeCounter() < 90);
         // No new incoming commands for 30 seconds, abort the transaction.
         int xid = transaction.getXid();
         try {
-
             if (handler.abort(xid)) {
                 MiddlewareServer.addTimeoutTransaction(xid);
                 Trace.info("Timeout! Transaction-" + xid + " is aborted");
